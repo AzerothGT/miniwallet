@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Build output
+dist/
+/miniwallet-be/public/build
+/miniwallet-be/public/hot
+/miniwallet-be/public/storage
+
+# Generated API spec (regenerate with `php artisan scramble:export`)
+api.json
+
+# Laravel runtime
+/miniwallet-be/storage/*.key
+/miniwallet-be/storage/pail
+/miniwallet-be/.phpunit.cache
+/miniwallet-be/.phpunit.result.cache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Editors
+.idea/
+.vscode/
+.fleet/
+.nova/
+.DS_Store
+Thumbs.db
+
+# Per-agent copies of the Boost guidelines. `.agents/` and `AGENTS.md` are the
+# canonical version; these are byte-identical duplicates that any contributor
+# can regenerate with `php artisan boost:update`.
+/miniwallet-be/.claude/
+/miniwallet-be/.codex/
+/miniwallet-be/.grok/
+/miniwallet-be/.kiro/
+/miniwallet-be/.zed/
+/miniwallet-be/CLAUDE.md
