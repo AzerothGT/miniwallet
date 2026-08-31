@@ -1,4 +1,9 @@
-import { BottomNav, SideNav } from './Navigation.jsx'
+import {
+  AdminBottomNav,
+  AdminSideNav,
+  BottomNav,
+  SideNav,
+} from './Navigation.jsx'
 
 /**
  * Application shell.
@@ -16,12 +21,11 @@ export function AppShell({ children, nav = true, maxWidth = 'max-w-5xl' }) {
     <div className="bg-canvas min-h-dvh lg:flex">
       {nav && <SideNav />}
 
-      <div className="flex min-h-dvh w-full flex-1 flex-col lg:min-h-dvh">
-        <div
-          className={`mx-auto flex w-full max-w-[26rem] flex-1 flex-col
-            lg:max-w-none lg:px-8 lg:py-6 ${nav ? '' : 'lg:mx-auto'}`}
-        >
-          <div className={`flex flex-1 flex-col lg:mx-auto lg:w-full ${maxWidth}`}>
+      <div className="flex min-h-dvh w-full flex-1 flex-col">
+        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col lg:max-w-none lg:px-8 lg:py-6">
+          <div
+            className={`flex flex-1 flex-col lg:mx-auto lg:w-full ${maxWidth}`}
+          >
             {children}
           </div>
         </div>
@@ -50,6 +54,33 @@ export function FocusShell({ children, nav = true }) {
         </div>
 
         {nav && <BottomNav />}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Shell for the administration area.
+ *
+ * Same structure as AppShell but wired to the admin navigation, and wider by
+ * default: these screens show tables and aggregate figures that genuinely benefit
+ * from the room, unlike a wallet form.
+ */
+export function AdminShell({ children, maxWidth = 'max-w-6xl' }) {
+  return (
+    <div className="bg-canvas min-h-dvh lg:flex">
+      <AdminSideNav />
+
+      <div className="flex min-h-dvh w-full flex-1 flex-col">
+        <div className="mx-auto flex w-full max-w-[30rem] flex-1 flex-col lg:max-w-none lg:px-8 lg:py-6">
+          <div
+            className={`flex flex-1 flex-col lg:mx-auto lg:w-full ${maxWidth}`}
+          >
+            {children}
+          </div>
+        </div>
+
+        <AdminBottomNav />
       </div>
     </div>
   )

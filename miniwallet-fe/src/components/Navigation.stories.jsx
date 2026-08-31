@@ -1,4 +1,9 @@
-import { BottomNav, SideNav } from './Navigation.jsx'
+import {
+  AdminBottomNav,
+  AdminSideNav,
+  BottomNav,
+  SideNav,
+} from './Navigation.jsx'
 
 export default {
   title: 'Navigation/AppNavigation',
@@ -58,5 +63,37 @@ export const Responsive = {
   ),
   parameters: {
     reactRouter: { initialEntries: ['/report'] },
+  },
+}
+
+/**
+ * Administration navigation.
+ *
+ * A separate item list rather than a filtered copy of the wallet one: an
+ * administrator is doing a different job, and mixing wallet actions into an
+ * oversight tool would blur which account the figures belong to.
+ */
+export const AdminSide = {
+  render: () => (
+    <div className="bg-canvas flex min-h-dvh">
+      <AdminSideNav />
+      <div className="text-ink-faint flex flex-1 items-center justify-center text-sm">
+        Area admin
+      </div>
+    </div>
+  ),
+  parameters: {
+    reactRouter: { initialEntries: ['/admin/users'] },
+  },
+}
+
+export const AdminBottom = {
+  render: () => (
+    <div className="bg-canvas max-w-[24rem] pt-16">
+      <AdminBottomNav />
+    </div>
+  ),
+  parameters: {
+    reactRouter: { initialEntries: ['/admin'] },
   },
 }

@@ -1,21 +1,21 @@
-import { SignOut, Wallet } from '@phosphor-icons/react'
+import { ShieldCheck, SignOut, Wallet } from '@phosphor-icons/react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
-import { NAV_ITEMS } from '../lib/navItems.js'
+import { ADMIN_NAV_ITEMS, NAV_ITEMS } from '../lib/navItems.js'
 import { Avatar } from './Avatar.jsx'
 
 /**
  * Persistent sidebar for desktop.
  *
  * Replaces the floating bottom bar above `lg`. On a wide screen the bottom edge
- * is the furthest point from both the eye and the mouse, so the same five
- * destinations move to a vertical rail where they read as labelled text rather
- * than icons needing interpretation.
+ * is the furthest point from both the eye and the mouse, so the destinations move
+ * to a vertical rail where they read as labelled text rather than icons needing
+ * interpretation.
  *
  * Rendered only at `lg` and up, so assistive tech is never offered the same set
  * of links twice.
  */
-export function SideNav() {
+export function SideNav({ items = NAV_ITEMS, admin = false }) {
   const { user, logout } = useAuth()
 
   return (
@@ -23,18 +23,35 @@ export function SideNav() {
       <div className="sticky top-0 flex h-dvh flex-col px-4 py-6">
         <div className="flex items-center gap-2.5 px-2">
           <span
-            className="bg-forest-800 text-lime-glow grid size-10 place-items-center
-              rounded-2xl"
+            className={`grid size-10 place-items-center rounded-2xl ${
+              admin
+                ? 'bg-ink text-lime-glow'
+                : 'bg-forest-800 text-lime-glow'
+            }`}
             aria-hidden
           >
-            <Wallet size={20} weight="bold" />
+            {admin ? (
+              <ShieldCheck size={20} weight="bold" />
+            ) : (
+              <Wallet size={20} weight="bold" />
+            )}
           </span>
-          <span className="font-display text-lg font-bold">Mini Wallet</span>
+
+          <div className="min-w-0">
+            <span className="font-display block text-lg leading-tight font-bold">
+              Mini Wallet
+            </span>
+            {admin && (
+              <span className="text-ink-faint text-[0.6875rem] font-semibold tracking-wide uppercase">
+                Administrator
+              </span>
+            )}
+          </div>
         </div>
 
         <nav aria-label="Navigasi utama" className="mt-8 flex-1">
           <ul className="space-y-1">
-            {NAV_ITEMS.map(({ to, label, Icon }) => (
+            {items.map(({ to, label, Icon }) => (
               <li key={to}>
                 <NavLink to={to} end className="block">
                   {({ isActive }) => (
@@ -95,7 +112,7 @@ export function SideNav() {
  *
  * Hidden at `lg` and up, where SideNav takes over.
  */
-export function BottomNav() {
+export function BottomNav({ items = NAV_ITEMS }) {
   return (
     <nav
       aria-label="Navigasi utama"
@@ -105,7 +122,7 @@ export function BottomNav() {
         className="bg-paper shadow-lift-lg flex items-center justify-around gap-0.5
           rounded-full p-2"
       >
-        {NAV_ITEMS.map(({ to, label, Icon }) => (
+        {items.map(({ to, label, Icon }) => (
           <li key={to}>
             <NavLink to={to} end className="block">
               {({ isActive }) => (
@@ -135,4 +152,13 @@ export function BottomNav() {
       </ul>
     </nav>
   )
+}
+
+/** Convenience wrappers so admin screens do not repeat the item list. */
+export function AdminSideNav() {
+  return <SideNav items={ADMIN_NAV_ITEMS} admin />
+}
+
+export function AdminBottomNav() {
+  return <BottomNav items={ADMIN_NAV_ITEMS} />
 }

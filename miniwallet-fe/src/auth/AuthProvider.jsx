@@ -8,6 +8,10 @@ import { AuthContext } from './AuthContext.js'
  * There is no token in state: the session lives entirely in the httpOnly
  * cookie, so "am I logged in?" is answered by asking the server (`GET /me`)
  * rather than by inspecting client storage.
+ *
+ * `is_admin` arrives with that payload and is used purely to decide what to
+ * render. The server never trusts it — every admin endpoint re-checks the role
+ * independently, so tampering with client state grants nothing.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -57,7 +61,14 @@ export function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, initialising, login, register, logout }),
+    () => ({
+      user,
+      isAdmin: user?.is_admin === true,
+      initialising,
+      login,
+      register,
+      logout,
+    }),
     [user, initialising, login, register, logout],
   )
 

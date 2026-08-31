@@ -1,6 +1,6 @@
 import { Coins, Wallet } from '@phosphor-icons/react'
 import { Link, useNavigate } from 'react-router-dom'
-import { PillButton } from '../components/PillButton.jsx'
+import { PillButton } from '../../components/PillButton.jsx'
 
 /**
  * Onboarding screen.

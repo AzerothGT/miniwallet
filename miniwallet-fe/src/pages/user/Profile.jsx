@@ -7,11 +7,11 @@ import {
   Wallet,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
-import { useAuth } from '../auth/useAuth.js'
-import { AppShell } from '../components/AppShell.jsx'
-import { Avatar } from '../components/Avatar.jsx'
-import { formatRupiah } from '../lib/format.js'
-import { useApiResource } from '../lib/useApiResource.js'
+import { useAuth } from '../../auth/useAuth.js'
+import { AppShell } from '../../components/AppShell.jsx'
+import { Avatar } from '../../components/Avatar.jsx'
+import { formatRupiah } from '../../lib/format.js'
+import { useApiResource } from '../../lib/useApiResource.js'
 
 export default function Profile() {
   const { user, logout } = useAuth()

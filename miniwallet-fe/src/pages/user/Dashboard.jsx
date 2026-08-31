@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/useAuth.js'
-import { AppShell } from '../components/AppShell.jsx'
-import { BalanceCard } from '../components/BalanceCard.jsx'
-import { GreetingHeader } from '../components/GreetingHeader.jsx'
-import { QuickSend } from '../components/QuickSend.jsx'
-import { TransactionList } from '../components/TransactionList.jsx'
-import { useApiResource } from '../lib/useApiResource.js'
+import { useAuth } from '../../auth/useAuth.js'
+import { AppShell } from '../../components/AppShell.jsx'
+import { BalanceCard } from '../../components/BalanceCard.jsx'
+import { GreetingHeader } from '../../components/GreetingHeader.jsx'
+import { QuickSend } from '../../components/QuickSend.jsx'
+import { TransactionList } from '../../components/TransactionList.jsx'
+import { useApiResource } from '../../lib/useApiResource.js'
 
 /*
  * A stable reference for "no data yet": `?? []` would allocate a fresh array on

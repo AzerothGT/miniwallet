@@ -1,12 +1,12 @@
 import { Envelope, Lock } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../auth/useAuth.js'
-import { Alert } from '../components/Alert.jsx'
-import { AuthLayout } from '../components/AuthLayout.jsx'
-import { PillButton } from '../components/PillButton.jsx'
-import { TextField } from '../components/TextField.jsx'
-import { validateEmail, validatePassword } from '../lib/validation.js'
+import { useAuth } from '../../auth/useAuth.js'
+import { Alert } from '../../components/Alert.jsx'
+import { AuthLayout } from '../../components/AuthLayout.jsx'
+import { PillButton } from '../../components/PillButton.jsx'
+import { TextField } from '../../components/TextField.jsx'
+import { validateEmail, validatePassword } from '../../lib/validation.js'
 
 export default function Login() {
   const { login } = useAuth()

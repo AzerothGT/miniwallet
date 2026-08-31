@@ -1,90 +1,90 @@
-import { ArrowDown, ArrowUp } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
-import { AppShell } from "../components/AppShell.jsx";
-import { TransactionList } from "../components/TransactionList.jsx";
-import { formatRupiah } from "../lib/format.js";
-import { useApiResource } from "../lib/useApiResource.js";
+import { ArrowDown, ArrowUp } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { AppShell } from '../../components/AppShell.jsx'
+import { TransactionList } from '../../components/TransactionList.jsx'
+import { formatRupiah } from '../../lib/format.js'
+import { useApiResource } from '../../lib/useApiResource.js'
 
 /*
  * A stable reference for "no data yet": `?? []` would allocate a fresh array on
  * every render, which would defeat the useMemo dependencies below.
  */
-const NO_TRANSACTIONS = [];
+const NO_TRANSACTIONS = []
 
 /**
  * Spending report.
  *
- * The API exposes no aggregate endpoint, so the totals and the chart are derived
- * from the transaction page already being fetched. That keeps the screen honest
- * about its scope — it summarises recent activity, not all-time history — and
- * avoids inventing a backend feature the spec never asked for.
+ * The API exposes no aggregate endpoint for a single user, so the totals and the
+ * chart are derived from the transaction page already being fetched. That keeps
+ * the screen honest about its scope — it summarises recent activity, not all-time
+ * history — and avoids inventing a backend feature the spec never asked for.
  */
 export default function Report() {
-  const [range, setRange] = useState("out");
+  const [range, setRange] = useState('out')
 
   const {
     data: history,
     loading,
     error,
-  } = useApiResource("/transactions", {
+  } = useApiResource('/transactions', {
     params: { per_page: 50 },
-  });
+  })
 
-  const transactions = history?.data ?? NO_TRANSACTIONS;
+  const transactions = history?.data ?? NO_TRANSACTIONS
 
   const summary = useMemo(() => {
-    let incoming = 0;
-    let outgoing = 0;
+    let incoming = 0
+    let outgoing = 0
 
     for (const transaction of transactions) {
-      if (transaction.direction === "out") {
-        outgoing += transaction.amount;
+      if (transaction.direction === 'out') {
+        outgoing += transaction.amount
       } else {
-        incoming += transaction.amount;
+        incoming += transaction.amount
       }
     }
 
-    return { incoming, outgoing };
-  }, [transactions]);
+    return { incoming, outgoing }
+  }, [transactions])
 
   // Last seven days, oldest first, so the chart reads left to right.
   const series = useMemo(() => {
-    const days = [];
-    const today = new Date();
+    const days = []
+    const today = new Date()
 
     for (let offset = 6; offset >= 0; offset -= 1) {
-      const day = new Date(today);
-      day.setDate(today.getDate() - offset);
+      const day = new Date(today)
+      day.setDate(today.getDate() - offset)
 
       days.push({
         key: day.toISOString().slice(0, 10),
-        label: day.toLocaleDateString("id-ID", { weekday: "short" }),
+        label: day.toLocaleDateString('id-ID', { weekday: 'short' }),
         total: 0,
-      });
+      })
     }
 
-    const index = new Map(days.map((day) => [day.key, day]));
+    const index = new Map(days.map((day) => [day.key, day]))
 
     for (const transaction of transactions) {
-      const key = transaction.created_at?.slice(0, 10);
-      const bucket = index.get(key);
+      const key = transaction.created_at?.slice(0, 10)
+      const bucket = index.get(key)
 
-      if (!bucket) continue;
+      if (!bucket) continue
 
       const matches =
-        range === "out"
-          ? transaction.direction === "out"
-          : transaction.direction === "in";
+        range === 'out'
+          ? transaction.direction === 'out'
+          : transaction.direction === 'in'
 
-      if (matches) bucket.total += transaction.amount;
+      if (matches) bucket.total += transaction.amount
     }
 
-    return days;
-  }, [transactions, range]);
+    return days
+  }, [transactions, range])
 
-  const preview = useMemo(() => transactions.slice(0, 5), [transactions]);
+  const preview = useMemo(() => transactions.slice(0, 5), [transactions])
 
-  const peak = Math.max(...series.map((day) => day.total), 1);
+  const peak = Math.max(...series.map((day) => day.total), 1)
 
   return (
     <AppShell>
@@ -126,15 +126,15 @@ export default function Report() {
                 aria-label="Pilih arah transaksi"
               >
                 {[
-                  { value: "out", label: "Keluar" },
-                  { value: "in", label: "Masuk" },
+                  { value: 'out', label: 'Keluar' },
+                  { value: 'in', label: 'Masuk' },
                 ].map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => setRange(option.value)}
                     aria-pressed={range === option.value}
-                    className={`seg ${range === option.value ? "seg-on" : ""}`}
+                    className={`seg ${range === option.value ? 'seg-on' : ''}`}
                   >
                     {option.label}
                   </button>
@@ -143,10 +143,10 @@ export default function Report() {
             </div>
 
             {/*
-            A bar chart rather than the reference's smooth line: with seven
-            discrete daily totals, bars state the values plainly, whereas a
-            spline would imply values between the days that do not exist.
-          */}
+              A bar chart rather than the reference's smooth line: with seven
+              discrete daily totals, bars state the values plainly, whereas a
+              spline would imply values between the days that do not exist.
+            */}
             <ul className="flex h-40 items-end gap-2 lg:h-56" aria-hidden>
               {series.map((day) => (
                 <li
@@ -156,7 +156,7 @@ export default function Report() {
                   <div className="flex w-full flex-1 items-end">
                     <div
                       className={`w-full rounded-t-lg transition-[height] ${
-                        day.total > 0 ? "bg-lime-zest" : "bg-canvas"
+                        day.total > 0 ? 'bg-lime-zest' : 'bg-canvas'
                       }`}
                       style={{
                         height: `${Math.max((day.total / peak) * 100, 3)}%`,
@@ -173,7 +173,7 @@ export default function Report() {
             {/* The same data as text, for anyone not reading the bars. */}
             <table className="sr-only">
               <caption>
-                Total {range === "out" ? "uang keluar" : "uang masuk"} per hari
+                Total {range === 'out' ? 'uang keluar' : 'uang masuk'} per hari
               </caption>
               <thead>
                 <tr>
@@ -202,14 +202,14 @@ export default function Report() {
         </div>
       </div>
     </AppShell>
-  );
+  )
 }
 
 function SummaryCard({ icon: Icon, label, amount, tone, loading }) {
   const tones = {
-    positive: "bg-positive-wash text-positive",
-    negative: "bg-negative-wash text-negative",
-  };
+    positive: 'bg-positive-wash text-positive',
+    negative: 'bg-negative-wash text-negative',
+  }
 
   return (
     <div className="card">
@@ -230,5 +230,5 @@ function SummaryCard({ icon: Icon, label, amount, tone, loading }) {
         </p>
       )}
     </div>
-  );
+  )
 }
