@@ -24,8 +24,10 @@ Masing-masing folder punya README sendiri dengan detail lengkap:
 | Autentikasi | Laravel Sanctum (token di cookie httpOnly) |
 | Database | MySQL 8 |
 | API Docs | Scramble (OpenAPI 3.1) di `/docs/api` |
-| Frontend | React 19, Vite 8, React Router 7, Axios |
-| Testing | Pest 5 (48 test, 185 assertion) |
+| Frontend | React 19, Vite 8, Tailwind CSS v4, React Router 7, Axios |
+| Ikon | Phosphor Icons |
+| Component workshop | Storybook 10 (54 story) |
+| Testing | Pest 5 (51 test, 197 assertion) |
 | Static analysis | Larastan / PHPStan level 7 |
 | Code style | Laravel Pint, oxlint |
 
@@ -48,15 +50,15 @@ Semua perpindahan uang melewati `WalletService`, satu-satunya tempat yang boleh 
 ```mermaid
 flowchart TD
     Start([Buka aplikasi]) --> Check{Punya sesi?}
-    Check -->|Tidak| Login[Halaman Login]
+    Check -->|Tidak| Onboard[Onboarding]
     Check -->|Ya| Dash[Dashboard]
 
-    Login --> HasAcc{Sudah punya akun?}
-    HasAcc -->|Belum| Reg[Halaman Register]
+    Onboard --> HasAcc{Sudah punya akun?}
+    HasAcc -->|Belum| Reg[Register]
     Reg --> Created[Akun + wallet dibuat<br/>dalam satu transaction]
     Created --> Dash
-    HasAcc -->|Sudah| Auth[Kirim kredensial]
-    Auth --> Valid{Valid?}
+    HasAcc -->|Sudah| Login[Login]
+    Login --> Valid{Kredensial valid?}
     Valid -->|Tidak| LoginErr[Tampilkan error 422]
     LoginErr --> Login
     Valid -->|Ya| Dash
@@ -64,14 +66,17 @@ flowchart TD
     Dash --> Action{Pilih aksi}
     Action --> Topup[Top Up]
     Action --> Transfer[Transfer]
-    Action --> History[Lihat Riwayat]
+    Action --> Hist[Riwayat]
+    Action --> Report[Laporan]
 
-    Topup --> ValidAmt{Nominal valid?}
+    Topup --> Pad1[Keypad numerik<br/>non-digit tidak bisa diketik]
+    Pad1 --> ValidAmt{Nominal valid?}
     ValidAmt -->|Tidak| AmtErr[Tombol disabled<br/>pesan spesifik<br/>tidak ada request]
     ValidAmt -->|Ya| DoTopup[POST /api/topup]
     DoTopup --> Refresh[Saldo dan riwayat diperbarui]
 
-    Transfer --> ValidTf{Penerima dan nominal valid?}
+    Transfer --> Pad2[Penerima + keypad numerik]
+    Pad2 --> ValidTf{Penerima dan nominal valid?}
     ValidTf -->|Tidak| AmtErr
     ValidTf -->|Ya| DoTf[POST /api/transfer]
     DoTf --> Enough{Saldo cukup?}
@@ -79,7 +84,9 @@ flowchart TD
     Enough -->|Ya| Commit[Debit dan kredit<br/>dalam satu transaction]
     Commit --> Refresh
 
-    History --> Scoped[Hanya mutasi milik sendiri]
+    Hist --> Paged[15 per halaman<br/>filter + kelompok tanggal]
+    Paged --> Scoped[Hanya mutasi milik sendiri]
+    Report --> Scoped
 ```
 
 ## Cara Run
@@ -120,6 +127,12 @@ npm run dev
 
 Dashboard di `http://localhost:5173`.
 
+Untuk memeriksa komponen secara terisolasi:
+
+```bash
+npm run storybook
+```
+
 ### Akun demo
 
 Password untuk semua akun: `password123`
@@ -155,6 +168,8 @@ Password untuk semua akun: `password123`
 
 **400 dipisahkan dari 422.** 422 berarti bentuk request salah, 400 berarti request benar tapi tidak bisa dijalankan (saldo tidak cukup, penerima tidak ada, transfer ke diri sendiri). Frontend memanfaatkannya: 422 menempel ke field, 400 jadi banner.
 
+**Alamat penerima hanya dibuka satu arah.** Field `counterpart.transfer_target` berisi alamat tujuan pada transfer keluar, tetapi `null` pada transfer masuk. Pada transfer keluar, alamat itu dulu diketikkan sendiri oleh user sehingga mengembalikannya tidak memberi informasi baru — dan memungkinkan fitur "kirim lagi" tanpa mengetik ulang. Pada transfer masuk, mengembalikannya berarti membocorkan email atau nomor HP pengirim kepada orang yang mungkin belum pernah mengetahuinya.
+
 **Test di MySQL, bukan SQLite.** Suite ini menguji rollback dan row locking, yang tidak dimodelkan sama oleh SQLite in-memory.
 
 ## Testing
@@ -169,6 +184,7 @@ composer types:check   # PHPStan level 7
 cd miniwallet-fe
 npm run lint
 npm run build
+npm run build-storybook
 ```
 
 Cakupan test yang penting:
@@ -179,3 +195,4 @@ Cakupan test yang penting:
 - Sembilan variasi nominal tidak valid pada top up dan transfer, masing-masing memverifikasi saldo tidak berubah dan tidak ada baris transaksi tercipta.
 - Kegagalan di tengah transfer mengembalikan saldo pengirim (uji rollback eksplisit).
 - User A tidak dapat melihat mutasi User B.
+- Alamat penerima dikembalikan pada transfer keluar, tetapi email dan nomor HP pengirim tidak muncul di field mana pun pada transfer masuk.
