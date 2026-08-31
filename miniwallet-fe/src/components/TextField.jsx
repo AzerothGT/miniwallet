@@ -9,32 +9,52 @@ export function TextField({
   disabled,
   autoComplete,
   placeholder,
+  icon: Icon,
 }) {
-  const describedBy = [error ? `${id}-error` : null, hint ? `${id}-hint` : null]
-    .filter(Boolean)
-    .join(' ')
+  const describedBy =
+    [error ? `${id}-error` : null, hint ? `${id}-hint` : null]
+      .filter(Boolean)
+      .join(' ') || undefined
 
   return (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={describedBy || undefined}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-      />
+    <div className="mb-4">
+      <label htmlFor={id} className="field-label">
+        {label}
+      </label>
+
+      <div className="relative">
+        {Icon && (
+          <Icon
+            size={18}
+            className="text-ink-faint pointer-events-none absolute top-1/2
+              left-3.5 -translate-y-1/2"
+            aria-hidden
+          />
+        )}
+
+        <input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={describedBy}
+          className={`field-input ${Icon ? 'pl-10' : ''} ${
+            error ? 'field-input-invalid' : ''
+          }`}
+        />
+      </div>
+
       {hint && (
-        <p className="field-hint" id={`${id}-hint`}>
+        <p id={`${id}-hint`} className="field-hint">
           {hint}
         </p>
       )}
       {error && (
-        <p className="field-error" id={`${id}-error`}>
+        <p id={`${id}-error`} className="field-error">
           {error}
         </p>
       )}
