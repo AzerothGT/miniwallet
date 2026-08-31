@@ -1,8 +1,16 @@
+import {
+  At,
+  Envelope,
+  IdentificationCard,
+  Lock,
+  Phone,
+} from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
 import { Alert } from '../components/Alert.jsx'
-import { SubmitButton } from '../components/SubmitButton.jsx'
+import { AuthLayout } from '../components/AuthLayout.jsx'
+import { PillButton } from '../components/PillButton.jsx'
 import { TextField } from '../components/TextField.jsx'
 import { validateEmail, validatePassword } from '../lib/validation.js'
 
@@ -64,8 +72,9 @@ export default function Register() {
       navigate('/dashboard', { replace: true })
     } catch (error) {
       setErrors(error.fieldErrors ?? {})
-      // Field-level messages render under their inputs; the banner covers
-      // anything that is not tied to a single field.
+
+      // Field-level messages render under their inputs; the banner is for
+      // anything not attributable to a single field.
       if (Object.keys(error.fieldErrors ?? {}).length === 0) {
         setFormError(error.message)
       }
@@ -75,64 +84,72 @@ export default function Register() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card auth-card-wide">
-        <header className="auth-header">
-          <h1>Daftar Mini Wallet</h1>
-          <p>Buat akun untuk mulai bertransaksi.</p>
-        </header>
+    <AuthLayout
+      title="Buat akun baru"
+      subtitle="Gratis, dan wallet Anda langsung aktif."
+      footer={
+        <>
+          Sudah punya akun? <Link to="/login">Masuk di sini</Link>
+        </>
+      }
+    >
+      <Alert onDismiss={() => setFormError('')}>{formError}</Alert>
 
-        <Alert onDismiss={() => setFormError('')}>{formError}</Alert>
+      <form onSubmit={handleSubmit} noValidate>
+        <TextField
+          id="name"
+          label="Nama Lengkap"
+          icon={IdentificationCard}
+          value={form.name}
+          onChange={setField('name')}
+          error={errors.name?.[0]}
+          autoComplete="name"
+          disabled={submitting}
+        />
 
-        <form onSubmit={handleSubmit} noValidate>
-          <TextField
-            id="name"
-            label="Nama Lengkap"
-            value={form.name}
-            onChange={setField('name')}
-            error={errors.name?.[0]}
-            autoComplete="name"
-            disabled={submitting}
-          />
+        <TextField
+          id="username"
+          label="Username"
+          icon={At}
+          value={form.username}
+          onChange={setField('username')}
+          error={errors.username?.[0]}
+          hint="3-30 karakter, tanpa spasi."
+          autoComplete="username"
+          disabled={submitting}
+        />
 
-          <TextField
-            id="username"
-            label="Username"
-            value={form.username}
-            onChange={setField('username')}
-            error={errors.username?.[0]}
-            hint="3-30 karakter, tanpa spasi."
-            autoComplete="username"
-            disabled={submitting}
-          />
+        <TextField
+          id="email"
+          label="Email"
+          type="email"
+          icon={Envelope}
+          value={form.email}
+          onChange={setField('email')}
+          error={errors.email?.[0]}
+          autoComplete="email"
+          placeholder="nama@example.com"
+          disabled={submitting}
+        />
 
-          <TextField
-            id="email"
-            label="Email"
-            type="email"
-            value={form.email}
-            onChange={setField('email')}
-            error={errors.email?.[0]}
-            autoComplete="email"
-            placeholder="nama@example.com"
-            disabled={submitting}
-          />
+        <TextField
+          id="phone"
+          label="Nomor HP"
+          icon={Phone}
+          value={form.phone}
+          onChange={setField('phone')}
+          error={errors.phone?.[0]}
+          hint="Contoh: 081234567890"
+          autoComplete="tel"
+          disabled={submitting}
+        />
 
-          <TextField
-            id="phone"
-            label="Nomor HP"
-            value={form.phone}
-            onChange={setField('phone')}
-            error={errors.phone?.[0]}
-            hint="Contoh: 081234567890"
-            autoComplete="tel"
-            disabled={submitting}
-          />
-
+        <div className="grid gap-x-3 sm:grid-cols-2">
           <TextField
             id="password"
             label="Password"
             type="password"
+            icon={Lock}
             value={form.password}
             onChange={setField('password')}
             error={errors.password?.[0]}
@@ -145,6 +162,7 @@ export default function Register() {
             id="password_confirmation"
             label="Konfirmasi Password"
             type="password"
+            icon={Lock}
             value={form.password_confirmation}
             onChange={setField('password_confirmation')}
             error={
@@ -156,20 +174,19 @@ export default function Register() {
             autoComplete="new-password"
             disabled={submitting}
           />
+        </div>
 
-          <SubmitButton
+        <div className="mt-6">
+          <PillButton
+            tone="lime"
             loading={submitting}
             disabled={!canSubmit}
             loadingText="Mendaftarkan…"
           >
-            Daftar
-          </SubmitButton>
-        </form>
-
-        <p className="auth-footer">
-          Sudah punya akun? <Link to="/login">Masuk di sini</Link>
-        </p>
-      </div>
-    </div>
+            Daftar Sekarang
+          </PillButton>
+        </div>
+      </form>
+    </AuthLayout>
   )
 }
