@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthCookieFactory;
 use App\Services\WalletService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,9 +17,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
-/**
- * @tags Authentication
- */
+#[Group(
+    name: 'Autentikasi',
+    description: 'Registrasi, login, profil, dan logout. Endpoint di bawah ini adalah pintu masuk ke seluruh API.',
+    weight: 1,
+)]
 class AuthController extends Controller
 {
     public function __construct(
@@ -27,15 +30,19 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Register
+     * Registrasi akun
      *
-     * Creates the account and its wallet in a single transaction, so a user can
-     * never exist without a wallet to hold their money.
+     * Membuat akun beserta wallet-nya dalam satu database transaction, sehingga
+     * tidak mungkin ada user tanpa wallet untuk menampung uangnya.
      *
-     * The issued Sanctum token is returned in the body (for API clients and the
-     * Swagger UI) and also set as an httpOnly cookie (for the browser SPA).
+     * Sanctum token dikembalikan pada response body (untuk API client dan tombol
+     * "Try it" di halaman ini) sekaligus dipasang sebagai cookie `httpOnly`
+     * (untuk SPA di browser).
      *
-     * @response 201 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string}}
+     * Field `role` dan `suspended_at` tidak dapat diisi lewat endpoint ini. Akun
+     * baru selalu berperan `user` dan berstatus aktif.
+     *
+     * @response 201 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
      */
     public function register(RegisterRequest $request): JsonResponse
@@ -69,9 +76,13 @@ class AuthController extends Controller
     /**
      * Login
      *
-     * Returns a Sanctum token and sets it as an httpOnly cookie.
+     * Mengembalikan Sanctum token dan memasangnya sebagai cookie `httpOnly`.
      *
-     * @response 200 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string}}
+     * Email yang tidak dikenal dan password yang salah menghasilkan pesan yang
+     * sama persis. Membedakan keduanya akan memungkinkan penyerang menebak akun
+     * mana yang terdaftar.
+     *
+     * @response 200 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
      */
     public function login(LoginRequest $request): JsonResponse
@@ -101,9 +112,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Current user
+     * Profil user saat ini
      *
-     * @response 200 array{user: array{id: int, name: string, username: string, email: string, phone: string}}
+     * Dipakai SPA untuk menjawab "apakah saya sudah login?" tanpa membaca isi
+     * storage, karena token tersimpan di cookie `httpOnly` yang tidak dapat
+     * diakses JavaScript.
+     *
+     * Tetap dapat diakses oleh akun yang dinonaktifkan, agar pemiliknya bisa
+     * mengetahui statusnya sendiri.
+     *
+     * @response 200 array{user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 401 array{message: string}
      */
     public function me(Request $request): JsonResponse
@@ -119,8 +137,9 @@ class AuthController extends Controller
     /**
      * Logout
      *
-     * Revokes only the token used for this request, so signing out on one device
-     * does not sign the user out everywhere. The cookie is cleared as well.
+     * Mencabut hanya token yang dipakai pada request ini, sehingga keluar dari
+     * satu perangkat tidak mengeluarkan user dari perangkat lainnya. Cookie
+     * `httpOnly` ikut dihapus.
      *
      * @response 200 array{message: string}
      * @response 401 array{message: string}

@@ -10,21 +10,29 @@ use App\Http\Resources\TransactionResource;
 use App\Http\Resources\WalletResource;
 use App\Models\User;
 use App\Services\WalletService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * @tags Wallet
- */
+#[Group(
+    name: 'Wallet',
+    description: 'Saldo, top up, dan transfer. Semua endpoint di bawah ini bekerja pada wallet milik user yang sedang login.',
+    weight: 2,
+)]
 class WalletController extends Controller
 {
     public function __construct(private readonly WalletService $wallets) {}
 
     /**
-     * Get balance
+     * Lihat saldo
+     *
+     * Mengembalikan saldo wallet milik user yang sedang login. Nilai `balance`
+     * berupa bilangan bulat rupiah untuk perhitungan, sedangkan
+     * `balance_formatted` sudah siap ditampilkan.
      *
      * @response 200 array{data: array{balance: int, balance_formatted: string, updated_at: string|null}}
      * @response 401 array{message: string}
+     * @response 403 array{message: string, code: string}
      */
     public function show(Request $request): WalletResource
     {
@@ -35,14 +43,19 @@ class WalletController extends Controller
     }
 
     /**
-     * Top up
+     * Top up saldo
      *
-     * Adds money to the authenticated user's own wallet. Amounts must be whole
-     * numbers within the configured limits; anything else is rejected with 422
-     * and nothing is written to the database.
+     * Menambah saldo ke wallet milik sendiri. Nominal wajib bilangan bulat dalam
+     * batas yang dikonfigurasi; nilai lain ditolak dengan status `422` dan tidak
+     * ada apa pun yang tersimpan ke database.
+     *
+     * Prosesnya berjalan di dalam database transaction dengan baris wallet
+     * terkunci, sehingga dua request bersamaan tidak dapat membaca saldo awal
+     * yang sama dan menghilangkan salah satu penambahan.
      *
      * @response 201 array{message: string, transaction: array<string, mixed>, wallet: array<string, mixed>}
      * @response 401 array{message: string}
+     * @response 403 array{message: string, code: string}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
      */
     public function topUp(TopupRequest $request): JsonResponse
@@ -64,15 +77,29 @@ class WalletController extends Controller
     }
 
     /**
-     * Transfer
+     * Transfer saldo
      *
-     * Sends money to another user, identified by email or phone number. The
-     * debit and credit happen inside one database transaction with both wallet
-     * rows locked, so a partial transfer cannot be observed or persisted.
+     * Mengirim saldo ke user lain, yang diidentifikasi lewat **email atau nomor
+     * HP** pada field `recipient`.
+     *
+     * Pemotongan dan penambahan saldo terjadi di dalam satu database transaction
+     * dengan kedua baris wallet dikunci lebih dulu (`lockForUpdate`) dan diurutkan
+     * berdasarkan `id`. Urutan tetap itu mencegah deadlock ketika A mengirim ke B
+     * bersamaan dengan B mengirim ke A. Jika ada kegagalan setelah saldo pengirim
+     * terpotong, seluruh transaksi dibatalkan — transfer sebagian tidak mungkin
+     * tersimpan maupun terlihat.
+     *
+     * Satu transfer menghasilkan dua baris mutasi dengan `reference` yang sama:
+     * `transfer_out` untuk pengirim dan `transfer_in` untuk penerima.
+     *
+     * Status `400` menandakan permintaan valid secara format tetapi melanggar
+     * aturan bisnis. Periksa field `code` untuk membedakannya:
+     * `insufficient_balance`, `recipient_not_found`, atau `self_transfer`.
      *
      * @response 201 array{message: string, transaction: array<string, mixed>, wallet: array<string, mixed>}
      * @response 400 array{message: string, code: string}
      * @response 401 array{message: string}
+     * @response 403 array{message: string, code: string}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
      *
      * @throws RecipientNotFoundException

@@ -6,26 +6,30 @@ use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TransactionResource;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-/**
- * @tags Wallet
- */
+#[Group(name: 'Wallet', weight: 2)]
 class TransactionController extends Controller
 {
     /**
-     * List transactions
+     * Riwayat mutasi
      *
-     * Returns the authenticated user's mutations, both incoming and outgoing.
+     * Mengembalikan mutasi milik user yang sedang login, baik uang masuk maupun
+     * keluar, terbaru lebih dulu.
      *
-     * The query is scoped through the user's own `transactions` relation, so
-     * there is no code path that could return another user's rows regardless of
-     * the query parameters supplied.
+     * Query dijalankan melalui relasi `transactions` milik user itu sendiri,
+     * sehingga tidak ada jalur kode yang dapat mengembalikan baris milik user
+     * lain, apa pun query parameter yang dikirim.
      *
+     * Filter opsional lewat `type`: `topup`, `transfer_in`, atau `transfer_out`.
+     * Nilai yang tidak dikenal diabaikan (mengembalikan semua) alih-alih
+     * menghasilkan daftar kosong yang membingungkan.
      *
      * @response 200 array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
      * @response 401 array{message: string}
+     * @response 403 array{message: string, code: string}
      */
     public function index(Request $request): AnonymousResourceCollection
     {

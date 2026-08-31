@@ -52,7 +52,8 @@ return [
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
         'description' => <<<'MD'
-Mini Wallet API — autentikasi Sanctum, top up, transfer antar user, dan riwayat mutasi.
+Mini Wallet API — autentikasi Sanctum, top up, transfer antar user, riwayat mutasi,
+dan panel administrasi.
 
 ## Autentikasi
 
@@ -63,19 +64,56 @@ sebagai cookie `httpOnly` untuk dipakai browser.
 Untuk mencoba endpoint di halaman ini, tekan tombol **Authorize** lalu tempelkan
 token dari response login.
 
+Token di cookie `httpOnly` tidak dapat dibaca JavaScript, sehingga tidak bisa
+diambil lewat XSS. Sebuah middleware menyalin token dari cookie ke header
+`Authorization` sebelum autentikasi berjalan; header yang dikirim secara eksplisit
+selalu diprioritaskan, jadi kedua cara sama-sama berfungsi.
+
 ## Nominal
 
 Semua nominal berupa bilangan bulat rupiah (tanpa sen). Nilai desimal, huruf,
 simbol, dan angka negatif ditolak dengan status `422` dan tidak ada data yang
 tersimpan ke database.
 
+Saldo disimpan sebagai `bigint`, bukan `float`, agar aritmetikanya eksak.
+
+## Integritas transaksi
+
+Transfer berjalan di dalam satu database transaction dengan kedua baris wallet
+dikunci lebih dulu dan diurutkan berdasarkan `id`. Kunci baris mencegah dua request
+bersamaan membaca saldo awal yang sama, dan urutan yang tetap mencegah deadlock
+ketika A mengirim ke B bersamaan dengan B mengirim ke A. Bila ada kegagalan setelah
+saldo pengirim terpotong, seluruh transaksi dibatalkan.
+
+Satu transfer menghasilkan dua baris mutasi dengan `reference` yang sama:
+`transfer_out` untuk pengirim dan `transfer_in` untuk penerima.
+
+## Peran akun
+
+Akun baru selalu berperan `user`. Endpoint di bawah prefix `/api/admin` hanya dapat
+diakses akun berperan `admin`, dan peran diperiksa ulang di server pada setiap
+request — bukan hanya disembunyikan di antarmuka.
+
+Akun yang dinonaktifkan ditolak pada seluruh endpoint yang berkaitan dengan uang,
+tetapi tetap dapat mengakses `GET /api/me` dan `POST /api/logout` agar pemiliknya
+bisa mengetahui statusnya dan keluar.
+
 ## Kode status
 
 | Status | Arti |
 | ------ | ---- |
-| `400` | Permintaan valid secara format, tetapi melanggar aturan bisnis (saldo tidak cukup, penerima tidak ditemukan, transfer ke diri sendiri). |
+| `400` | Permintaan valid secara format, tetapi melanggar aturan bisnis. Periksa `code`: `insufficient_balance`, `recipient_not_found`, atau `self_transfer`. |
 | `401` | Token tidak ada, tidak valid, atau sudah dicabut. |
-| `422` | Input gagal validasi. Detail per field ada pada `errors`. |
+| `403` | Akun tidak berhak (`forbidden`) atau sedang dinonaktifkan (`account_suspended`). |
+| `422` | Input gagal validasi. Detail per field ada pada `errors`. Juga dipakai untuk tindakan moderasi terhadap akun sendiri (`self_moderation`). |
+
+Pembedaan `400` dan `422` disengaja: `422` berarti bentuk permintaannya salah,
+sedangkan `400` berarti permintaannya benar tetapi tidak dapat dijalankan.
+
+## Batas laju
+
+`POST /api/register` dan `POST /api/login` dibatasi 10 permintaan per menit per
+alamat IP.
 MD,
     ],
 
