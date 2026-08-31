@@ -22,6 +22,11 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'email' => $this->email,
             'phone' => $this->phone,
+            // Exposed so the SPA knows whether to offer the admin area at all.
+            // The client uses it to route; the server never trusts it, because
+            // every admin endpoint re-checks the role independently.
+            'role' => $this->role->value,
+            'is_admin' => $this->isAdmin(),
         ];
     }
 }

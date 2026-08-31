@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -29,6 +30,8 @@ class UserFactory extends Factory
             'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => '08'.fake()->unique()->numerify('##########'),
+            'role' => UserRole::User,
+            'suspended_at' => null,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -53,5 +56,25 @@ class UserFactory extends Factory
         return $this->afterCreating(function (User $user) use ($balance) {
             $user->wallet()->forceCreate(['balance' => $balance]);
         });
+    }
+
+    /**
+     * Promote to super administrator.
+     *
+     * `role` is not fillable, so it is assigned explicitly here rather than
+     * passed through `create()`.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Admin,
+        ]);
+    }
+
+    public function suspended(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'suspended_at' => now(),
+        ]);
     }
 }

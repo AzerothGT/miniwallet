@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
+use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -20,6 +22,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $username
  * @property string $email
  * @property string $phone
+ * @property UserRole $role
+ * @property CarbonInterface|null $suspended_at
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
@@ -36,7 +40,22 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * Get the attributes that should be cast.
+     * Mirrors the database default so a freshly created model already knows its
+     * role, without a reload. Otherwise `role` would be null in memory until the
+     * record was fetched again — and anything reading it, such as UserResource,
+     * would fail on the very response that follows registration.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'role' => 'user',
+        'suspended_at' => null,
+    ];
+
+    /**
+     * `role` and `suspended_at` are deliberately excluded from the fillable list.
+     * Privilege and access may only change through an explicit assignment, never
+     * through mass assignment from request data.
      *
      * @return array<string, string>
      */
@@ -44,7 +63,9 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'suspended_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
@@ -62,5 +83,15 @@ class User extends Authenticatable
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 }

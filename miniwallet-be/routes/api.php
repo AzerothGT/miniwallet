@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\StatsController;
+use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsNotSuspended;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])
@@ -16,12 +21,38 @@ Route::post('/login', [AuthController::class, 'login'])
  * header or via the httpOnly cookie. Without it these routes answer 401.
  */
 Route::middleware('auth:sanctum')->group(function (): void {
+    // Readable and revocable even while suspended: a suspended user still needs
+    // to learn why they are blocked, and to be able to sign out.
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/wallet', [WalletController::class, 'show']);
-    Route::post('/topup', [WalletController::class, 'topUp']);
-    Route::post('/transfer', [WalletController::class, 'transfer']);
+    /*
+     * Money and history require an active account. Enforced here rather than in
+     * each controller: an account that must not transact must not transact
+     * anywhere, and a per-endpoint check is a rule someone eventually forgets.
+     */
+    Route::middleware(EnsureUserIsNotSuspended::class)->group(function (): void {
+        Route::get('/wallet', [WalletController::class, 'show']);
+        Route::post('/topup', [WalletController::class, 'topUp']);
+        Route::post('/transfer', [WalletController::class, 'transfer']);
 
-    Route::get('/transactions', [TransactionController::class, 'index']);
+        Route::get('/transactions', [TransactionController::class, 'index']);
+    });
+
+    /*
+     * Administration. Guarded by both middlewares: a suspended administrator is
+     * still suspended.
+     */
+    Route::middleware([EnsureUserIsNotSuspended::class, EnsureUserIsAdmin::class])
+        ->prefix('admin')
+        ->group(function (): void {
+            Route::get('/stats', StatsController::class);
+
+            Route::get('/users', [AdminUserController::class, 'index']);
+            Route::get('/users/{user}', [AdminUserController::class, 'show']);
+            Route::patch('/users/{user}/suspension', [AdminUserController::class, 'suspension']);
+            Route::patch('/users/{user}/role', [AdminUserController::class, 'role']);
+
+            Route::get('/transactions', [AdminTransactionController::class, 'index']);
+        });
 });

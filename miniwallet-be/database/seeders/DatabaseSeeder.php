@@ -12,8 +12,9 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Three demo accounts with a little history, so the dashboard has something
-     * to show immediately after a fresh install.
+     * Three demo accounts with a little history, plus one super administrator,
+     * so the dashboard and the admin area both have something to show
+     * immediately after a fresh install.
      *
      * Password for all of them: password123
      */
@@ -48,5 +49,19 @@ class DatabaseSeeder extends Seeder
         $wallets->transfer($ian, $budi, 75_000, 'Bayar makan siang');
         $wallets->transfer($budi, $citra, 25_000, 'Split bill kopi');
         $wallets->transfer($citra, $ian, 10_000, 'Kembalian parkir');
+
+        /*
+         * The administrator also gets a wallet: the role grants oversight, it
+         * does not make the account a different kind of thing.
+         */
+        $admin = User::factory()->admin()->create([
+            'name' => 'Super Admin',
+            'username' => 'admin',
+            'email' => 'admin@example.com',
+            'phone' => '081200000000',
+            'password' => 'password123',
+        ]);
+
+        $wallets->walletFor($admin);
     }
 }
