@@ -9,6 +9,7 @@ vendor/
 
 # Build output
 dist/
+storybook-static/
 /miniwallet-be/public/build
 /miniwallet-be/public/hot
 /miniwallet-be/public/storage
