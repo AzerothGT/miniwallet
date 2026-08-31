@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { formatRupiah } from '../lib/format.js'
 
 /**
- * Balance hero with the action row underneath, as in the reference.
+ * Balance hero with the action row underneath.
  *
  * The balance can be hidden — a small courtesy when checking a wallet in public.
  * The choice is deliberately not persisted: every visit starts visible, and
@@ -27,7 +27,7 @@ export function BalanceCard({ wallet, loading, onTopup, onTransfer, onMore }) {
       {/* Sage gradient panel carrying the amount. */}
       <div
         className="relative overflow-hidden bg-gradient-to-br from-sage-100
-          via-sage-200 to-sage-400 px-5 pt-5 pb-6"
+          via-sage-200 to-sage-400 px-5 pt-5 pb-6 lg:px-7 lg:pt-7 lg:pb-8"
       >
         <div
           aria-hidden
@@ -53,14 +53,15 @@ export function BalanceCard({ wallet, loading, onTopup, onTransfer, onMore }) {
             {loading ? (
               <div
                 className="bg-forest-800/10 mt-2 h-9 w-40 animate-pulse
-                  rounded-lg"
+                  rounded-lg lg:h-12 lg:w-56"
                 role="status"
                 aria-label="Memuat saldo"
               />
             ) : (
               <p
                 className="font-display text-forest-900 mt-0.5 text-[2.25rem]
-                  leading-none font-bold tracking-tight tabular-nums"
+                  leading-none font-bold tracking-tight tabular-nums
+                  lg:text-[3rem]"
               >
                 {hidden ? '••••••' : formatRupiah(wallet?.balance)}
               </p>
@@ -86,7 +87,7 @@ export function BalanceCard({ wallet, loading, onTopup, onTransfer, onMore }) {
       </div>
 
       {/* Action row. */}
-      <div className="grid grid-cols-4 gap-1 px-2 py-3">
+      <div className="grid grid-cols-4 gap-1 px-2 py-3 lg:px-4">
         <Action icon={Plus} label="Top Up" onClick={onTopup} />
         <Action icon={ArrowsLeftRight} label="Transfer" onClick={onTransfer} />
         <Action icon={QrCode} label="Terima" onClick={onMore} />
@@ -102,10 +103,11 @@ function Action({ icon: Icon, label, onClick }) {
       type="button"
       onClick={onClick}
       className="text-forest-800 flex cursor-pointer flex-col items-center gap-1.5
-        rounded-2xl py-2 transition hover:bg-lime-wash"
+        rounded-2xl py-2 transition hover:bg-lime-wash lg:flex-row
+        lg:justify-center lg:gap-2 lg:py-3"
     >
       <Icon size={22} weight="regular" aria-hidden />
-      <span className="text-[0.6875rem] font-semibold">{label}</span>
+      <span className="text-[0.6875rem] font-semibold lg:text-sm">{label}</span>
     </button>
   )
 }

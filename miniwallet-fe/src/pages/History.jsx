@@ -1,7 +1,6 @@
 import { Receipt } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { AppShell } from '../components/AppShell.jsx'
-import { BottomNav } from '../components/BottomNav.jsx'
 import { Pagination } from '../components/Pagination.jsx'
 import { ScreenHeader } from '../components/ScreenHeader.jsx'
 import { TransactionRow } from '../components/TransactionRow.jsx'
@@ -56,10 +55,12 @@ export default function History() {
   }
 
   return (
-    <AppShell nav={<BottomNav />}>
+    // A reading list gains nothing from extra width; capped at 3xl so lines stay
+    // scannable instead of stretching the full window.
+    <AppShell maxWidth="max-w-3xl">
       <ScreenHeader title="Riwayat Transaksi" to="/dashboard" />
 
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-4 lg:px-0 lg:pb-0">
         {/* Filters. */}
         <div
           className="-mx-1 mb-3 flex gap-0.5 overflow-x-auto px-1 py-1"

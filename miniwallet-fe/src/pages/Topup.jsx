@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppShell } from '../components/AppShell.jsx'
 import { Alert } from '../components/Alert.jsx'
+import { FocusShell } from '../components/AppShell.jsx'
 import { Keypad } from '../components/Keypad.jsx'
 import { PillButton } from '../components/PillButton.jsx'
 import { ScreenHeader } from '../components/ScreenHeader.jsx'
 import api from '../lib/api.js'
 import { formatRupiah, withThousandSeparators } from '../lib/format.js'
+import { useAmountKeyboard } from '../lib/useAmountKeyboard.js'
 import { useApiResource } from '../lib/useApiResource.js'
 import { AMOUNT_LIMITS, validateAmount } from '../lib/validation.js'
 
@@ -22,6 +23,17 @@ export default function Topup() {
 
   const { data: wallet } = useApiResource('/wallet', {
     select: (payload) => payload.data,
+  })
+
+  // A desktop has a number row; making someone click twelve buttons with a
+  // mouse would be a step backwards.
+  useAmountKeyboard({
+    value: amount,
+    onChange: (next) => {
+      setAmount(next)
+      setFieldError('')
+    },
+    enabled: !submitting,
   })
 
   const localError = validateAmount(amount)
@@ -60,16 +72,16 @@ export default function Topup() {
   const shownError = fieldError || (amount ? localError : '')
 
   return (
-    <AppShell>
+    <FocusShell>
       <ScreenHeader title="Top Up Saldo" to="/dashboard" />
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-1 flex-col">
-        <div className="px-5">
+        <div className="px-5 lg:px-0">
           <Alert onDismiss={() => setServerError('')}>{serverError}</Alert>
         </div>
 
         {/* Amount display. */}
-        <div className="px-5 pt-2 pb-5 text-center">
+        <div className="px-5 pt-2 pb-5 text-center lg:px-0">
           <p
             className="font-display text-ink text-[2.5rem] leading-none font-bold
               tabular-nums"
@@ -95,7 +107,7 @@ export default function Topup() {
           )}
         </div>
 
-        <div className="mb-5 flex flex-wrap justify-center gap-2 px-5">
+        <div className="mb-5 flex flex-wrap justify-center gap-2 px-5 lg:px-0">
           {QUICK_AMOUNTS.map((value) => (
             <button
               key={value}
@@ -112,10 +124,15 @@ export default function Topup() {
           ))}
         </div>
 
-        {/* Keypad sheet pinned to the bottom. */}
+        {/*
+          The keypad sheet hugs the bottom edge on mobile. On desktop it becomes
+          an ordinary card: there is no thumb reaching up the screen, and a sheet
+          pinned to a tall window would leave a gap in the middle.
+        */}
         <div
           className="rounded-t-sheet bg-canvas animate-sheet mt-auto px-5 pt-5
-            pb-6 shadow-nav"
+            pb-6 shadow-nav lg:rounded-card lg:bg-paper lg:shadow-lift lg:mt-6
+            lg:p-5"
         >
           <Keypad
             value={amount}
@@ -125,6 +142,10 @@ export default function Topup() {
             }}
             disabled={submitting}
           />
+
+          <p className="text-ink-faint mt-3 hidden text-center text-xs lg:block">
+            Bisa juga langsung ketik angka di keyboard.
+          </p>
 
           <div className="mt-4">
             <PillButton
@@ -138,6 +159,6 @@ export default function Topup() {
           </div>
         </div>
       </form>
-    </AppShell>
+    </FocusShell>
   )
 }

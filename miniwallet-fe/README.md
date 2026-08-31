@@ -63,6 +63,32 @@ npm run build-storybook  # Storybook statis ke storybook-static/
 
 `ProtectedRoute` melempar user tanpa sesi ke `/login`; `GuestRoute` melempar user yang sudah login ke `/dashboard`.
 
+## Layout: Mobile dan Desktop
+
+Aplikasi punya dua komposisi, bukan satu kolom sempit yang dipusatkan di layar lebar.
+
+Di bawah `lg` (1024px), layoutnya persis mengikuti referensi: satu kolom `26rem` dengan navigasi mengambang di bawah. Dari `lg` ke atas:
+
+| Elemen | Mobile | Desktop |
+| --- | --- | --- |
+| Navigasi | Bar mengambang di bawah | Sidebar `w-64` menetap di kiri |
+| Dashboard | Satu kolom bertumpuk | Dua kolom: saldo + Kirim Cepat di kiri, riwayat di kanan |
+| Laporan | Bertumpuk | Dua kolom, grafik lebih tinggi (`h-56`) |
+| Login/Register | Header forest + sheet form | Panel brand dan form berdampingan |
+| Onboarding | Ilustrasi di atas teks | Berdampingan, ilustrasi 2× lebih besar |
+| Sheet keypad | Menempel tepi bawah | Kartu biasa |
+| Judul layar | Tengah | Rata kiri |
+
+Beberapa keputusan yang perlu dicatat:
+
+**Navigasi pindah ke sidebar, tidak diperlebar.** Di layar lebar, tepi bawah adalah titik terjauh dari mata maupun kursor. Lima destinasi yang sama pindah ke rail vertikal, di mana keduanya terbaca sebagai teks berlabel alih-alih ikon yang perlu ditafsirkan. `SideNav` dan `BottomNav` di-render eksklusif lewat `lg:hidden` / `hidden lg:block`, jadi assistive tech tidak pernah menerima dua set tautan yang sama.
+
+**Lebar maksimum ditentukan per layar, bukan global.** `AppShell` menerima prop `maxWidth`: dashboard dan laporan memakai `max-w-5xl` karena diuntungkan dua kolom, riwayat `max-w-3xl` supaya baris tetap mudah dipindai, profil `max-w-2xl`. Top up dan transfer memakai `FocusShell` yang tetap sempit — keypad dan form pendek tidak menjadi lebih mudah dibaca saat direntangkan, dan kolom terpusat menjaga nominal, form, serta keypad dalam satu gerakan mata.
+
+**Keypad tetap ada di desktop, tapi keyboard juga jalan.** Keypad ada karena layar sentuh tidak punya baris angka; desktop punya. Hook `useAmountKeyboard` menangani digit dan Backspace dengan aturan yang sama persis seperti keypad, jadi kedua metode input tidak bisa menyimpang. Hook itu mengabaikan event yang berasal dari `<input>`, sehingga mengetik email di kolom penerima tidak ikut menambah angka ke nominal.
+
+**Identitas user tidak diduplikasi.** Avatar dan bell di header dashboard disembunyikan pada `lg`, karena sidebar sudah menampilkan user yang login beserta tombol keluar. Mengulang identitas di dua tempat pada satu layar memunculkan pertanyaan mana yang otoritatif.
+
 ## Kirim Cepat
 
 Baris kontak di dashboard diturunkan dari riwayat transaksi, bukan dari endpoint kontak terpisah: orang yang benar-benar pernah Anda bayar adalah shortcut terbaik yang tersedia, dan tidak memerlukan request tambahan.
@@ -94,7 +120,7 @@ Catatan: tidak ada effect penjepit untuk `page`. Mengganti filter mereset ke 1, 
 
 ## Sistem Desain
 
-Layout dibuat untuk kolom sempit (maksimal `26rem`) lalu dipusatkan di layar lebar. Referensinya adalah produk mobile, jadi satu set style dipertahankan daripada memelihara komposisi desktop terpisah yang tidak pernah dispesifikasikan.
+Layout dibuat untuk kolom sempit pada mobile, lalu melebar menjadi komposisi dua kolom dengan sidebar dari `lg` ke atas. Rinciannya ada di bagian "Layout: Mobile dan Desktop" di atas.
 
 Palet: hijau forest untuk layar imersif, gradien sage untuk kartu saldo, dan satu lime terang untuk semua aksi utama. Lime dipakai hemat — satu aksen dominan terbaca sebagai desain, sedangkan palet yang tersebar rata terbaca sebagai belum selesai.
 
@@ -116,7 +142,7 @@ Catatan teknis: `btn` dan `btn-pill` dideklarasikan dengan `@utility`, bukan di 
 
 ## Storybook
 
-54 story untuk 11 komponen. Setiap komponen presentasional didokumentasikan bersama state yang sulit dijangkau di aplikasi berjalan: loading, empty, error, dan setiap pesan validasi.
+56 story untuk 11 komponen. Setiap komponen presentasional didokumentasikan bersama state yang sulit dijangkau di aplikasi berjalan: loading, empty, error, dan setiap pesan validasi.
 
 ```bash
 npm run storybook
@@ -183,6 +209,8 @@ Layar top up dan transfer memakai **keypad numerik**, bukan input teks. Bedanya 
 
 Tombol `000` disediakan karena nominal rupiah nyaris selalu ribuan — itu menghemat tiga ketukan di hampir setiap transaksi.
 
+Di desktop, keyboard fisik juga bisa dipakai lewat `useAmountKeyboard`, dengan aturan yang sama persis seperti keypad sehingga kedua metode input tidak bisa menyimpang. Keypad tetap ditampilkan, karena membuang UI yang sudah ada hanya karena ada keyboard justru menghilangkan opsi bagi pengguna layar sentuh berukuran besar.
+
 ## Struktur
 
 ```
@@ -197,13 +225,13 @@ src/
     useAuth.js         # hook konsumen
   components/
     Alert.jsx          # banner error/sukses
-    AppShell.jsx       # kolom bergaya ponsel
-    AuthLayout.jsx     # header forest + sheet form
+    AppShell.jsx       # AppShell (lebar) + FocusShell (sempit)
+    AuthLayout.jsx     # header forest + sheet, dua kolom di desktop
     Avatar.jsx         # inisial, warna deterministik
     BalanceCard.jsx    # hero saldo + baris aksi
-    BottomNav.jsx      # navigasi mengambang
     GreetingHeader.jsx
     Keypad.jsx         # entri nominal numerik
+    Navigation.jsx     # SideNav (desktop) + BottomNav (mobile)
     Pagination.jsx     # jendela halaman ringkas
     PillButton.jsx     # CTA pill dengan cap panah
     QuickSend.jsx      # penerima terakhir
@@ -212,11 +240,13 @@ src/
     TextField.jsx
     TransactionList.jsx  # pratinjau untuk dashboard
     TransactionRow.jsx   # satu baris mutasi
-    *.stories.jsx      # 54 story
+    *.stories.jsx      # 56 story
   lib/
     api.js             # axios instance + ApiError
     avatar.js          # inisial & warna deterministik
     format.js          # rupiah, tanggal, pengelompokan tanggal
+    navItems.js        # lima destinasi, dipakai dua navigasi
+    useAmountKeyboard.js # keyboard fisik untuk entri nominal
     useApiResource.js  # hook GET dengan loading/error dan guard race condition
     validation.js      # aturan client-side, mencerminkan backend
   pages/
@@ -235,7 +265,8 @@ Halaman `Report` menurunkan total dan grafiknya dari halaman transaksi yang suda
 - Field yang error diberi `aria-invalid="true"`.
 - Error memakai `role="alert"` (menginterupsi), sukses memakai `role="status"` (menunggu giliran).
 - Tombol yang sedang memproses memakai `aria-busy`; filter aktif memakai `aria-pressed`.
-- Item navigasi aktif ditandai bentuk pill dan label teks, bukan warna saja. Item non-aktif tetap punya label via `.sr-only`.
+- Item navigasi aktif ditandai bentuk pill dan label teks, bukan warna saja. Item non-aktif pada bar bawah tetap punya label via `.sr-only`; di sidebar semua label selalu terlihat.
+- Hanya satu navigasi yang di-render pada satu waktu, jadi tidak ada tautan ganda untuk screen reader.
 - Halaman aktif pada paginasi ditandai `aria-current="page"`; setiap tombol halaman punya `aria-label` eksplisit ("Halaman 3").
 - Grafik pada halaman Report disertai tabel `.sr-only` berisi data yang sama, jadi angkanya tetap terbaca tanpa melihat batang.
 - Avatar `aria-hidden` secara default karena namanya sudah dirender sebagai teks di sebelahnya; avatar yang berdiri sendiri diberi `label`.

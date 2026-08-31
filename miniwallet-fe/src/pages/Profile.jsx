@@ -10,7 +10,6 @@ import { useState } from 'react'
 import { useAuth } from '../auth/useAuth.js'
 import { AppShell } from '../components/AppShell.jsx'
 import { Avatar } from '../components/Avatar.jsx'
-import { BottomNav } from '../components/BottomNav.jsx'
 import { formatRupiah } from '../lib/format.js'
 import { useApiResource } from '../lib/useApiResource.js'
 
@@ -34,12 +33,14 @@ export default function Profile() {
   }
 
   return (
-    <AppShell nav={<BottomNav />}>
-      <header className="px-5 pt-6 pb-4">
-        <h1 className="text-[1.375rem]">Profil</h1>
+    // Account details are a short read; a 2xl measure keeps the definition list
+    // from stretching into two unrelated halves.
+    <AppShell maxWidth="max-w-2xl">
+      <header className="px-5 pt-6 pb-4 lg:px-0 lg:pt-0">
+        <h1 className="text-[1.375rem] lg:text-[1.75rem]">Profil</h1>
       </header>
 
-      <div className="grid gap-3.5 px-5 pb-4">
+      <div className="grid gap-3.5 px-5 pb-4 lg:px-0 lg:pb-0 lg:gap-5">
         <section className="card flex items-center gap-4">
           <Avatar name={user?.name} size="lg" label={user?.name} />
 

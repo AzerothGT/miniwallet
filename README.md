@@ -26,7 +26,7 @@ Masing-masing folder punya README sendiri dengan detail lengkap:
 | API Docs | Scramble (OpenAPI 3.1) di `/docs/api` |
 | Frontend | React 19, Vite 8, Tailwind CSS v4, React Router 7, Axios |
 | Ikon | Phosphor Icons |
-| Component workshop | Storybook 10 (54 story) |
+| Component workshop | Storybook 10 (56 story) |
 | Testing | Pest 5 (51 test, 197 assertion) |
 | Static analysis | Larastan / PHPStan level 7 |
 | Code style | Laravel Pint, oxlint |
@@ -155,6 +155,20 @@ Password untuk semua akun: `password123`
 | POST | `/api/topup` | ✓ | Tambah saldo |
 | POST | `/api/transfer` | ✓ | Kirim saldo ke user lain (email / nomor HP) |
 | GET | `/api/transactions` | ✓ | Riwayat mutasi (masuk & keluar) |
+
+## Layar Frontend
+
+| Route | Akses | Isi |
+| --- | --- | --- |
+| `/` | guest | Onboarding |
+| `/login`, `/register` | guest | Autentikasi |
+| `/dashboard` | terautentikasi | Saldo, kirim cepat, transaksi terakhir |
+| `/topup`, `/transfer` | terautentikasi | Keypad numerik |
+| `/history` | terautentikasi | Riwayat penuh dengan paginasi dan filter |
+| `/report` | terautentikasi | Ringkasan dan grafik 7 hari |
+| `/profile` | terautentikasi | Info akun dan logout |
+
+Setiap layar punya dua komposisi: satu kolom dengan navigasi mengambang di bawah `lg`, dan dua kolom dengan sidebar menetap dari `lg` ke atas.
 
 ## Keputusan Teknis Utama
 

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
 import { AppShell } from '../components/AppShell.jsx'
 import { BalanceCard } from '../components/BalanceCard.jsx'
-import { BottomNav } from '../components/BottomNav.jsx'
 import { GreetingHeader } from '../components/GreetingHeader.jsx'
 import { QuickSend } from '../components/QuickSend.jsx'
 import { TransactionList } from '../components/TransactionList.jsx'
@@ -81,32 +80,41 @@ export default function Dashboard() {
   )
 
   return (
-    <AppShell nav={<BottomNav />}>
+    <AppShell>
       <GreetingHeader user={user} />
 
-      <div className="grid gap-3.5 px-5 pb-4">
-        <BalanceCard
-          wallet={wallet}
-          loading={walletLoading}
-          onTopup={() => navigate('/topup')}
-          onTransfer={() => navigate('/transfer')}
-          onMore={() => navigate('/history')}
-        />
+      {/*
+        Two columns from `lg`: balance and shortcuts on the left, history on the
+        right. On a wide screen this puts the figure and the activity that
+        explains it side by side, instead of one scroll apart.
+      */}
+      <div className="grid gap-3.5 px-5 pb-4 lg:grid-cols-5 lg:gap-5 lg:px-0 lg:pb-0">
+        <div className="grid gap-3.5 lg:col-span-3 lg:content-start lg:gap-5">
+          <BalanceCard
+            wallet={wallet}
+            loading={walletLoading}
+            onTopup={() => navigate('/topup')}
+            onTransfer={() => navigate('/transfer')}
+            onMore={() => navigate('/history')}
+          />
 
-        <QuickSend
-          contacts={contacts}
-          loading={historyLoading}
-          onPick={(contact) =>
-            navigate('/transfer', { state: { recipient: contact } })
-          }
-          onAdd={() => navigate('/transfer')}
-        />
+          <QuickSend
+            contacts={contacts}
+            loading={historyLoading}
+            onPick={(contact) =>
+              navigate('/transfer', { state: { recipient: contact } })
+            }
+            onAdd={() => navigate('/transfer')}
+          />
+        </div>
 
-        <TransactionList
-          transactions={preview}
-          loading={historyLoading}
-          error={historyError}
-        />
+        <div className="lg:col-span-2">
+          <TransactionList
+            transactions={preview}
+            loading={historyLoading}
+            error={historyError}
+          />
+        </div>
       </div>
     </AppShell>
   )

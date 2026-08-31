@@ -2,7 +2,7 @@ import { NotePencil, UserCircle, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert } from '../components/Alert.jsx'
-import { AppShell } from '../components/AppShell.jsx'
+import { FocusShell } from '../components/AppShell.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Keypad } from '../components/Keypad.jsx'
 import { PillButton } from '../components/PillButton.jsx'
@@ -10,6 +10,7 @@ import { ScreenHeader } from '../components/ScreenHeader.jsx'
 import { TextField } from '../components/TextField.jsx'
 import api from '../lib/api.js'
 import { formatRupiah, withThousandSeparators } from '../lib/format.js'
+import { useAmountKeyboard } from '../lib/useAmountKeyboard.js'
 import { useApiResource } from '../lib/useApiResource.js'
 import { validateAmount, validateRecipient } from '../lib/validation.js'
 
@@ -47,6 +48,14 @@ export default function Transfer() {
   })
 
   const balance = wallet?.balance
+
+  // A desktop has a number row. The hook ignores events from text fields, so
+  // typing an email in the recipient box does not also feed the amount.
+  useAmountKeyboard({
+    value: amount,
+    onChange: setAmount,
+    enabled: !submitting,
+  })
 
   const recipientError = validateRecipient(recipient)
   const amountError = validateAmount(amount)
@@ -122,11 +131,11 @@ export default function Transfer() {
       : '')
 
   return (
-    <AppShell>
+    <FocusShell>
       <ScreenHeader title="Kirim Uang" to="/dashboard" />
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-1 flex-col">
-        <div className="px-5">
+        <div className="px-5 lg:px-0">
           <Alert onDismiss={() => setServerError('')}>{serverError}</Alert>
 
           {pickedContact && (
@@ -188,7 +197,7 @@ export default function Transfer() {
         </div>
 
         {/* Amount display. */}
-        <div className="px-5 pt-1 pb-4 text-center">
+        <div className="px-5 pt-1 pb-4 text-center lg:px-0">
           <p
             className="font-display text-ink text-[2.5rem] leading-none font-bold
               tabular-nums"
@@ -209,12 +218,21 @@ export default function Transfer() {
           )}
         </div>
 
-        {/* Keypad sheet pinned to the bottom. */}
+        {/*
+          The keypad sheet hugs the bottom edge on mobile. On desktop it becomes
+          an ordinary card: there is no thumb reaching up the screen, and a sheet
+          pinned to a tall window would leave a gap in the middle.
+        */}
         <div
           className="rounded-t-sheet bg-canvas animate-sheet mt-auto px-5 pt-5
-            pb-6 shadow-nav"
+            pb-6 shadow-nav lg:rounded-card lg:bg-paper lg:shadow-lift lg:mt-6
+            lg:p-5"
         >
           <Keypad value={amount} onChange={setAmount} disabled={submitting} />
+
+          <p className="text-ink-faint mt-3 hidden text-center text-xs lg:block">
+            Bisa juga langsung ketik angka di keyboard.
+          </p>
 
           <div className="mt-4">
             <PillButton
@@ -228,6 +246,6 @@ export default function Transfer() {
           </div>
         </div>
       </form>
-    </AppShell>
+    </FocusShell>
   )
 }
