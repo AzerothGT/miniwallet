@@ -90,3 +90,50 @@ test('the history is paginated and newest first', function () {
 test('the transactions endpoint requires authentication', function () {
     $this->getJson('/api/transactions')->assertUnauthorized();
 });
+
+/*
+ * The Quick Send shortcut needs an address it can reuse, but only where the user
+ * already knew it. These two tests pin that asymmetry down.
+ */
+test('an outgoing transfer exposes the recipient address so it can be reused', function () {
+    $alice = User::factory()->withWallet(100_000)->create();
+    $bob = User::factory()->withWallet()->create(['email' => 'bob@example.com']);
+
+    app(WalletService::class)->transfer($alice, $bob, 20_000);
+
+    $this->actingAs($alice)
+        ->getJson('/api/transactions')
+        ->assertOk()
+        ->assertJsonPath('data.0.type', 'transfer_out')
+        ->assertJsonPath('data.0.counterpart.transfer_target', 'bob@example.com');
+});
+
+test('an incoming transfer withholds the sender address', function () {
+    $alice = User::factory()->withWallet(0)->create();
+    $bob = User::factory()->withWallet(100_000)->create(['email' => 'bob@example.com']);
+
+    app(WalletService::class)->transfer($bob, $alice, 20_000);
+
+    $response = $this->actingAs($alice)
+        ->getJson('/api/transactions')
+        ->assertOk()
+        ->assertJsonPath('data.0.type', 'transfer_in')
+        ->assertJsonPath('data.0.counterpart.name', $bob->name)
+        ->assertJsonPath('data.0.counterpart.transfer_target', null);
+
+    // Alice may never have known Bob's address; it must not leak in any field.
+    expect($response->getContent())->not->toContain('bob@example.com')
+        ->and($response->getContent())->not->toContain($bob->phone);
+});
+
+test('a top up has no counterpart address at all', function () {
+    $alice = User::factory()->withWallet(0)->create();
+
+    app(WalletService::class)->topUp($alice, 50_000);
+
+    $this->actingAs($alice)
+        ->getJson('/api/transactions')
+        ->assertOk()
+        ->assertJsonPath('data.0.type', 'topup')
+        ->assertJsonPath('data.0.counterpart', null);
+});

@@ -211,6 +211,7 @@ Cakupan yang penting:
 - Token dari cookie `httpOnly` bisa mengautentikasi request tanpa header `Authorization`.
 - Logout mencabut token, dan token yang dicabut langsung tidak berlaku.
 - Sembilan variasi nominal tidak valid pada top up dan transfer, masing-masing memverifikasi saldo tidak berubah dan tidak ada baris transaksi tercipta.
+- Alamat penerima dibuka pada transfer keluar (untuk fitur "kirim lagi"), tetapi ditahan pada transfer masuk.
 - Saldo tidak cukup, transfer ke diri sendiri, dan penerima tidak ditemukan menghasilkan 400 dengan `code` yang spesifik.
 - Kegagalan di tengah transfer mengembalikan saldo pengirim (uji rollback).
 - User A tidak melihat mutasi User B.

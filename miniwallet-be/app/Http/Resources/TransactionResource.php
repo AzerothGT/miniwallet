@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\TransactionType;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -32,6 +33,19 @@ class TransactionResource extends JsonResource
                 fn () => $this->counterpart ? [
                     'name' => $this->counterpart->name,
                     'username' => $this->counterpart->username,
+                    /*
+                     * A transfer target the client can reuse, so "send again"
+                     * does not make the user retype an identifier.
+                     *
+                     * Only present on `transfer_out`: there the user supplied
+                     * this address themselves, so returning it tells them
+                     * nothing new. On `transfer_in` it would hand out the
+                     * sender's email or phone number to someone who may never
+                     * have known it, which is not ours to disclose.
+                     */
+                    'transfer_target' => $this->type === TransactionType::TransferOut
+                        ? $this->counterpart->email
+                        : null,
                 ] : null,
             ),
             'created_at' => $this->created_at?->toIso8601String(),
