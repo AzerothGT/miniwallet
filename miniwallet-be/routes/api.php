@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\StatsController;
 use App\Http\Controllers\Api\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
@@ -54,5 +55,13 @@ Route::middleware('auth:sanctum')->group(function (): void {
             Route::patch('/users/{user}/role', [AdminUserController::class, 'role']);
 
             Route::get('/transactions', [AdminTransactionController::class, 'index']);
+
+            /*
+             * The log has no write routes at all. It is append-only by design, and
+             * the absence of an update or delete endpoint is part of that
+             * guarantee rather than an oversight.
+             */
+            Route::get('/logs', [ActivityLogController::class, 'index']);
+            Route::get('/logs/filters', [ActivityLogController::class, 'filters']);
         });
 });

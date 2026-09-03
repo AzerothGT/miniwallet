@@ -2,6 +2,7 @@ import {
   ArrowsLeftRight,
   ChartPieSlice,
   House,
+  ListMagnifyingGlass,
   Receipt,
   ShieldCheck,
   User,
@@ -33,4 +34,5 @@ export const ADMIN_NAV_ITEMS = [
   { to: '/admin', label: 'Ringkasan', Icon: ShieldCheck },
   { to: '/admin/users', label: 'Pengguna', Icon: Users },
   { to: '/admin/transactions', label: 'Ledger', Icon: Receipt },
+  { to: '/admin/logs', label: 'Jejak', Icon: ListMagnifyingGlass },
 ]

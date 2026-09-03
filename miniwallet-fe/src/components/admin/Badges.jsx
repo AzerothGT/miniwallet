@@ -35,3 +35,21 @@ export function StatusBadge({ suspended }) {
     </span>
   )
 }
+
+/** Which area of the system an audit entry belongs to. */
+export function CategoryBadge({ category, label }) {
+  const tones = {
+    auth: 'bg-canvas text-ink-muted',
+    wallet: 'bg-lime-wash text-lime-deep',
+    admin: 'bg-ink text-lime-glow',
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5
+        text-[0.6875rem] font-semibold ${tones[category] ?? tones.auth}`}
+    >
+      {label}
+    </span>
+  )
+}

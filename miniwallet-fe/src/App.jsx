@@ -5,6 +5,7 @@ import {
   GuestRoute,
   ProtectedRoute,
 } from './components/RouteGuards.jsx'
+import AdminLogs from './pages/admin/AdminLogs.jsx'
 import AdminOverview from './pages/admin/AdminOverview.jsx'
 import AdminTransactions from './pages/admin/AdminTransactions.jsx'
 import AdminUsers from './pages/admin/AdminUsers.jsx'
@@ -124,6 +125,14 @@ export default function App() {
             element={
               <AdminRoute>
                 <AdminTransactions />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/logs"
+            element={
+              <AdminRoute>
+                <AdminLogs />
               </AdminRoute>
             }
           />
