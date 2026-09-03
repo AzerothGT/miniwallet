@@ -12,11 +12,16 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Three demo accounts with a little history, plus one super administrator,
-     * so the dashboard and the admin area both have something to show
-     * immediately after a fresh install.
+     * Three demo accounts with a little history, plus the super administrator, so
+     * the dashboard and the admin area both have something to show immediately
+     * after a fresh install.
      *
      * Password for all of them: password123
+     *
+     * The administrator is delegated to AdminSeeder, which can also be run on its
+     * own when a real deployment needs an operator but not demo wallets:
+     *
+     *     php artisan db:seed --class=AdminSeeder
      */
     public function run(): void
     {
@@ -50,18 +55,6 @@ class DatabaseSeeder extends Seeder
         $wallets->transfer($budi, $citra, 25_000, 'Split bill kopi');
         $wallets->transfer($citra, $ian, 10_000, 'Kembalian parkir');
 
-        /*
-         * The administrator also gets a wallet: the role grants oversight, it
-         * does not make the account a different kind of thing.
-         */
-        $admin = User::factory()->admin()->create([
-            'name' => 'Super Admin',
-            'username' => 'admin',
-            'email' => 'admin@example.com',
-            'phone' => '081200000000',
-            'password' => 'password123',
-        ]);
-
-        $wallets->walletFor($admin);
+        $this->call(AdminSeeder::class);
     }
 }
