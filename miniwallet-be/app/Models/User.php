@@ -15,6 +15,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Sanctum\PersonalAccessToken;
+use Laravel\Sanctum\TransientToken;
 
 /**
  * @property int $id
@@ -36,7 +38,15 @@ use Laravel\Sanctum\HasApiTokens;
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
+    /**
+     * Sanctum's trait defaults its token type to PersonalAccessToken, but the
+     * guard hands out a TransientToken for session-based authentication. Naming
+     * both here keeps `currentAccessToken()` honest at the call site, where only
+     * a stored token can actually be revoked.
+     *
+     * @use HasApiTokens<PersonalAccessToken|TransientToken>
+     * @use HasFactory<UserFactory>
+     */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**

@@ -7,6 +7,7 @@ use App\Exceptions\SelfModerationException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AdminUserResource;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ use Illuminate\Validation\Rule;
 #[Group(name: 'Administrasi', weight: 3)]
 class UserController extends Controller
 {
+    public function __construct(private readonly ActivityLogger $activity) {}
+
     /**
      * Daftar pengguna
      *
@@ -136,6 +139,11 @@ class UserController extends Controller
             $user->tokens()->delete();
         }
 
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $this->activity->suspensionChanged($user, $actor, $suspend);
+
         return response()->json([
             'message' => $suspend
                 ? 'Akun berhasil dinonaktifkan.'
@@ -175,8 +183,20 @@ class UserController extends Controller
             );
         }
 
+        $previous = $user->role;
+
         $user->role = UserRole::from($validated['role']);
         $user->save();
+
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $this->activity->roleChanged(
+            $user,
+            $actor,
+            $previous->label(),
+            $user->role->label(),
+        );
 
         return response()->json([
             'message' => 'Peran akun berhasil diperbarui.',

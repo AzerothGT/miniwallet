@@ -15,9 +15,15 @@ use Illuminate\Support\Str;
 /**
  * All money movement lives here so the rules are enforced in exactly one place,
  * independent of which controller or command triggers them.
+ *
+ * The audit trail is written from inside the same transactions, which is what
+ * makes it trustworthy: money cannot move without a log entry, and a log entry
+ * cannot survive a movement that rolled back.
  */
 class WalletService
 {
+    public function __construct(private readonly ActivityLogger $activity) {}
+
     /**
      * Fetch the user's wallet, creating it if it does not exist yet.
      *
@@ -56,7 +62,7 @@ class WalletService
             $wallet->balance += $amount;
             $wallet->save();
 
-            return Transaction::create([
+            $transaction = Transaction::create([
                 'reference' => (string) Str::uuid(),
                 'user_id' => $user->getKey(),
                 'counterpart_id' => null,
@@ -65,6 +71,10 @@ class WalletService
                 'balance_after' => $wallet->balance,
                 'description' => $description,
             ]);
+
+            $this->activity->toppedUp($user, $amount, $wallet->balance);
+
+            return $transaction;
         });
     }
 
@@ -146,6 +156,8 @@ class WalletService
                 'balance_after' => $recipientWallet->balance,
                 'description' => $description,
             ]);
+
+            $this->activity->transferSent($sender, $recipient, $amount, $reference);
 
             return ['out' => $out, 'in' => $in];
         });

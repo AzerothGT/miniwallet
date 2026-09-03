@@ -7,6 +7,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use App\Services\AuthCookieFactory;
 use App\Services\WalletService;
 use Dedoc\Scramble\Attributes\Group;
@@ -27,6 +28,7 @@ class AuthController extends Controller
     public function __construct(
         private readonly WalletService $wallets,
         private readonly AuthCookieFactory $cookies,
+        private readonly ActivityLogger $activity,
     ) {}
 
     /**
@@ -62,6 +64,8 @@ class AuthController extends Controller
             return $user;
         });
 
+        $this->activity->registered($user);
+
         $token = $user->createToken('spa')->plainTextToken;
 
         return response()
@@ -95,10 +99,16 @@ class AuthController extends Controller
         // A single generic message for both unknown email and wrong password:
         // distinguishing them would let an attacker enumerate valid accounts.
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
+            // Recorded either way. Repeated attempts against addresses that match
+            // no account are what separate a guessing attack from a typo.
+            $this->activity->loginFailed($request->string('email')->toString(), $user);
+
             throw ValidationException::withMessages([
                 'email' => ['Email atau password salah.'],
             ]);
         }
+
+        $this->activity->loggedIn($user);
 
         $token = $user->createToken('spa')->plainTextToken;
 
@@ -149,10 +159,18 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        /** @var PersonalAccessToken|null $token */
+        /*
+         * Only a stored token can be revoked. Session-based authentication yields
+         * a TransientToken instead — an object with no `delete()` at all, and
+         * nothing to revoke, since there is no stored row behind it.
+         */
         $token = $user->currentAccessToken();
 
-        $token?->delete();
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
+
+        $this->activity->loggedOut($user);
 
         return response()
             ->json(['message' => 'Logout berhasil.'])
