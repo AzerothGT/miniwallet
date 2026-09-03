@@ -60,6 +60,10 @@ npm run build-storybook  # Storybook statis ke storybook-static/
 | `/history` | terautentikasi | Riwayat penuh: paginasi, filter, kelompok tanggal |
 | `/report` | terautentikasi | Ringkasan masuk/keluar dan grafik 7 hari |
 | `/profile` | terautentikasi | Info akun, catatan keamanan, logout |
+| `/admin` | admin | Ringkasan platform |
+| `/admin/users` | admin | Kelola pengguna: cari, nonaktifkan, ubah peran |
+| `/admin/transactions` | admin | Ledger seluruh transaksi |
+| `/admin/logs` | admin | Jejak aktivitas, append-only |
 
 `ProtectedRoute` melempar user tanpa sesi ke `/login`; `GuestRoute` melempar user yang sudah login ke `/dashboard`.
 
@@ -142,7 +146,7 @@ Catatan teknis: `btn` dan `btn-pill` dideklarasikan dengan `@utility`, bukan di 
 
 ## Storybook
 
-56 story untuk 11 komponen. Setiap komponen presentasional didokumentasikan bersama state yang sulit dijangkau di aplikasi berjalan: loading, empty, error, dan setiap pesan validasi.
+85 story untuk 16 komponen. Setiap komponen presentasional didokumentasikan bersama state yang sulit dijangkau di aplikasi berjalan: loading, empty, error, dan setiap pesan validasi.
 
 ```bash
 npm run storybook

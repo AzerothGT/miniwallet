@@ -89,13 +89,54 @@ API jalan di `http://localhost:8000`, dokumentasi di `http://localhost:8000/docs
 
 ### Akun demo
 
-Seeder membuat tiga akun, semuanya dengan password `password123`:
+`php artisan migrate --seed` membuat tiga akun pengguna dan satu super
+administrator, semuanya dengan password `password123`:
 
-| Nama | Email | Nomor HP | Saldo |
+| Nama | Email | Peran | Saldo |
 | --- | --- | --- | --- |
-| Ian Pratama | ian@example.com | 081200000001 | Rp 435.000 |
-| Budi Santoso | budi@example.com | 081200000002 | Rp 300.000 |
-| Citra Dewi | citra@example.com | 081200000003 | Rp 115.000 |
+| Ian Pratama | ian@example.com | Pengguna | Rp 435.000 |
+| Budi Santoso | budi@example.com | Pengguna | Rp 300.000 |
+| Citra Dewi | citra@example.com | Pengguna | Rp 115.000 |
+| Super Admin | admin@example.com | Administrator | Rp 0 |
+
+### Seeder administrator
+
+Akun administrator dibuat oleh `AdminSeeder`, yang juga bisa dijalankan sendiri.
+Ini yang dipakai saat deployment sungguhan: satu operator dibuat, tanpa wallet
+demo yang tidak diinginkan di production.
+
+```bash
+php artisan db:seed --class=AdminSeeder
+```
+
+Identitasnya diambil dari environment, jadi kredensial tidak perlu di-hardcode:
+
+| Variable | Default |
+| --- | --- |
+| `ADMIN_NAME` | `Super Admin` |
+| `ADMIN_USERNAME` | `admin` |
+| `ADMIN_EMAIL` | `admin@example.com` |
+| `ADMIN_PHONE` | `081200000000` |
+| `ADMIN_PASSWORD` | `password123` |
+
+Tiga sifat seeder ini yang perlu diketahui:
+
+**Idempoten.** Menjalankannya dua kali tidak menabrak unique index pada `email`
+dan tidak membuat administrator kedua. Jika akun dengan email tersebut sudah ada,
+akun itu dipromosikan menjadi administrator dan diaktifkan kembali bila sedang
+dinonaktifkan.
+
+**Password akun lama tidak diubah.** Saat mempromosikan akun yang sudah ada,
+password-nya dibiarkan apa adanya. Menimpanya akan membatalkan perubahan yang
+sengaja dilakukan pemilik akun secara diam-diam — kegagalan yang lebih buruk
+daripada meminta operator menjalankan satu perintah tambahan untuk memulihkan
+akses.
+
+**Tidak memakai factory.** `fakerphp/faker` adalah dependency `require-dev`,
+sehingga `User::factory()` tidak tersedia setelah `composer install --no-dev`.
+Seeder ini membangun model secara langsung agar tetap berfungsi di production.
+
+Seeder akan memperingatkan bila `ADMIN_PASSWORD` masih memakai nilai default.
 
 ## Endpoint
 
@@ -170,6 +211,43 @@ Tiga hal yang dijaga di sini:
 
 `balance` juga sengaja tidak masuk daftar `fillable` pada model `Wallet`, jadi tidak ada controller atau mass-assignment yang bisa menggeser saldo tanpa lewat `WalletService`.
 
+## Jejak Audit
+
+Setiap kejadian penting dicatat ke tabel `activity_logs`: registrasi, login
+(termasuk yang gagal), logout, top up, transfer, serta tindakan administrator
+terhadap akun lain. Dapat dibaca lewat `GET /api/admin/logs`.
+
+Empat keputusan yang membentuk desainnya:
+
+**Ditulis dari dalam transaksi yang sama.** Entri untuk top up dan transfer dibuat
+di dalam `DB::transaction` yang memindahkan uangnya, lewat `ActivityLogger` yang
+dipanggil dari `WalletService`. Itu yang membuat jejaknya bisa dipercaya: uang
+tidak bisa berpindah tanpa tercatat, dan catatan tidak bisa bertahan dari
+perpindahan yang di-rollback. Keduanya diuji secara eksplisit.
+
+**Append-only.** Tidak ada kolom `updated_at`, karena kolom itu hanya bisa
+berbohong. Tidak ada endpoint tulis, dan model menolak `update` maupun `delete`
+dengan melempar exception. Jejak audit hanya berguna bila tidak bisa ditulis ulang
+diam-diam.
+
+**Pokok dan pelaku dipisah.** Kolom `user_id` menyatakan akun yang menjadi pokok
+kejadian, `actor_id` menyatakan siapa yang melakukannya bila berbeda — misalnya
+administrator yang menonaktifkan akun orang lain. `actor_id` hanya diisi saat
+memang berbeda, sehingga keberadaannya sendiri sudah berarti "seseorang bertindak
+terhadap akun orang lain". Filter per user mencari di kedua kolom, agar jejak
+administrator sendiri tidak tersembunyi.
+
+**Login gagal ikut dicatat, password tidak.** Percobaan terhadap email yang tidak
+terdaftar justru yang paling perlu terlihat: itu yang membedakan serangan
+penebakan dari orang yang salah mengetik password sendiri. Password yang dikirim
+tidak pernah disimpan dalam bentuk apa pun, dan ada test yang memeriksa seluruh
+kolom untuk memastikannya.
+
+Pencatatan dilakukan lewat pemanggilan eksplisit, bukan middleware. Middleware bisa
+mencatat semua request, tetapi juga akan mencatat operasi baca — memeriksa saldo
+bukan kejadian yang perlu diaudit — dan tidak punya akses ke konteks bisnis yang
+membuat sebuah entri berguna: berapa nominalnya, ke siapa, dari peran apa ke apa.
+
 ## Kontrak Error
 
 | Status | Kapan | Contoh body |
@@ -202,7 +280,7 @@ composer lint          # perbaiki style
 composer types:check   # PHPStan level 7
 ```
 
-48 test, 185 assertion. Test suite berjalan di MySQL (`miniwallet_test`), bukan SQLite in-memory, karena yang diuji mencakup perilaku transaksi dan row locking yang tidak dimodelkan sama oleh SQLite.
+103 test, 438 assertion. Test suite berjalan di MySQL (`miniwallet_test`), bukan SQLite in-memory, karena yang diuji mencakup perilaku transaksi dan row locking yang tidak dimodelkan sama oleh SQLite.
 
 Cakupan yang penting:
 
@@ -215,25 +293,44 @@ Cakupan yang penting:
 - Saldo tidak cukup, transfer ke diri sendiri, dan penerima tidak ditemukan menghasilkan 400 dengan `code` yang spesifik.
 - Kegagalan di tengah transfer mengembalikan saldo pengirim (uji rollback).
 - User A tidak melihat mutasi User B.
+- Registrasi tidak dapat memberikan peran `admin` walaupun field `role` dikirim.
+- Akun yang dinonaktifkan ditolak pada semua endpoint uang, tetapi tetap bisa membuka `/me` dan `/logout`.
+- Administrator tidak dapat menonaktifkan atau menurunkan peran akunnya sendiri.
+- `AdminSeeder` idempoten: dijalankan dua kali tetap menghasilkan satu administrator, dan password akun yang dipromosikan tidak berubah.
+- Jejak audit ditulis di dalam transaksi yang sama dengan perpindahan uang: transfer yang di-rollback tidak meninggalkan catatan bahwa ia pernah terjadi.
+- Baris activity log tidak dapat diubah maupun dihapus, dan password yang dikirim saat login gagal tidak muncul di kolom mana pun.
 
 ## Struktur
 
 ```
 app/
-  Enums/TransactionType.php          # topup | transfer_in | transfer_out
-  Exceptions/                        # BusinessRuleException + turunannya (400)
+  Enums/
+    ActivityCategory.php             # auth | wallet | admin
+    ActivityEvent.php                # 9 jenis kejadian yang dicatat
+    TransactionType.php              # topup | transfer_in | transfer_out
+    UserRole.php                     # user | admin
+  Exceptions/                        # BusinessRuleException + turunannya
   Http/
     Controllers/Api/                 # Auth, Wallet, Transaction
-    Middleware/AuthenticateFromCookie.php
+    Controllers/Api/Admin/           # Stats, User, Transaction, ActivityLog
+    Middleware/
+      AuthenticateFromCookie.php     # cookie httpOnly -> header Authorization
+      EnsureUserIsAdmin.php          # 403 untuk non-admin
+      EnsureUserIsNotSuspended.php   # 403 untuk akun nonaktif
     Requests/                        # AmountRequest sebagai basis Topup & Transfer
-    Resources/                       # bentuk response JSON
-  Models/                            # User, Wallet, Transaction
+    Resources/                       # bentuk response JSON, terpisah admin & user
+  Models/                            # User, Wallet, Transaction, ActivityLog
   Services/
     WalletService.php                # satu-satunya tempat uang berpindah
+    ActivityLogger.php               # satu-satunya tempat jejak audit ditulis
     AuthCookieFactory.php
 config/
+  admin.php                          # identitas bootstrap administrator
   auth_cookie.php                    # konfigurasi cookie httpOnly
   wallet.php                         # batas nominal
+database/seeders/
+  DatabaseSeeder.php                 # akun demo + memanggil AdminSeeder
+  AdminSeeder.php                    # administrator, idempoten, tanpa faker
 ```
 
 Logika uang sengaja dikumpulkan di `WalletService` supaya aturannya berlaku sama dari mana pun dipanggil (controller, command, seeder) dan bisa diuji tanpa HTTP.

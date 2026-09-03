@@ -26,8 +26,8 @@ Masing-masing folder punya README sendiri dengan detail lengkap:
 | API Docs | Scramble (OpenAPI 3.1) di `/docs/api` |
 | Frontend | React 19, Vite 8, Tailwind CSS v4, React Router 7, Axios |
 | Ikon | Phosphor Icons |
-| Component workshop | Storybook 10 (56 story) |
-| Testing | Pest 5 (51 test, 197 assertion) |
+| Component workshop | Storybook 10 (85 story) |
+| Testing | Pest 5 (103 test, 438 assertion) |
 | Static analysis | Larastan / PHPStan level 7 |
 | Code style | Laravel Pint, oxlint |
 
@@ -137,11 +137,22 @@ npm run storybook
 
 Password untuk semua akun: `password123`
 
-| Nama | Email | Nomor HP | Saldo |
+| Nama | Email | Peran | Saldo |
 | --- | --- | --- | --- |
-| Ian Pratama | ian@example.com | 081200000001 | Rp 435.000 |
-| Budi Santoso | budi@example.com | 081200000002 | Rp 300.000 |
-| Citra Dewi | citra@example.com | 081200000003 | Rp 115.000 |
+| Ian Pratama | ian@example.com | Pengguna | Rp 435.000 |
+| Budi Santoso | budi@example.com | Pengguna | Rp 300.000 |
+| Citra Dewi | citra@example.com | Pengguna | Rp 115.000 |
+| Super Admin | admin@example.com | Administrator | Rp 0 |
+
+Untuk deployment sungguhan, administrator dapat dibuat sendiri tanpa akun demo:
+
+```bash
+php artisan db:seed --class=AdminSeeder
+```
+
+Seeder itu idempoten dan mengambil kredensial dari environment (`ADMIN_EMAIL`,
+`ADMIN_PASSWORD`, dan seterusnya). Detailnya ada di
+[`miniwallet-be/README.md`](miniwallet-be/README.md).
 
 ## Endpoint
 
@@ -155,6 +166,13 @@ Password untuk semua akun: `password123`
 | POST | `/api/topup` | ✓ | Tambah saldo |
 | POST | `/api/transfer` | ✓ | Kirim saldo ke user lain (email / nomor HP) |
 | GET | `/api/transactions` | ✓ | Riwayat mutasi (masuk & keluar) |
+| GET | `/api/admin/stats` | admin | Statistik platform |
+| GET | `/api/admin/users` | admin | Daftar pengguna, cari & filter |
+| PATCH | `/api/admin/users/{user}/suspension` | admin | Nonaktifkan / aktifkan akun |
+| PATCH | `/api/admin/users/{user}/role` | admin | Ubah peran akun |
+| GET | `/api/admin/transactions` | admin | Ledger seluruh platform |
+| GET | `/api/admin/logs` | admin | Jejak aktivitas, append-only |
+| GET | `/api/admin/logs/filters` | admin | Pilihan kategori dan jenis kejadian |
 
 ## Layar Frontend
 
@@ -167,6 +185,10 @@ Password untuk semua akun: `password123`
 | `/history` | terautentikasi | Riwayat penuh dengan paginasi dan filter |
 | `/report` | terautentikasi | Ringkasan dan grafik 7 hari |
 | `/profile` | terautentikasi | Info akun dan logout |
+| `/admin` | admin | Ringkasan platform |
+| `/admin/users` | admin | Kelola pengguna |
+| `/admin/transactions` | admin | Ledger seluruh transaksi |
+| `/admin/logs` | admin | Jejak aktivitas |
 
 Setiap layar punya dua komposisi: satu kolom dengan navigasi mengambang di bawah `lg`, dan dua kolom dengan sidebar menetap dari `lg` ke atas.
 
@@ -183,6 +205,8 @@ Setiap layar punya dua komposisi: satu kolom dengan navigasi mengambang di bawah
 **400 dipisahkan dari 422.** 422 berarti bentuk request salah, 400 berarti request benar tapi tidak bisa dijalankan (saldo tidak cukup, penerima tidak ada, transfer ke diri sendiri). Frontend memanfaatkannya: 422 menempel ke field, 400 jadi banner.
 
 **Alamat penerima hanya dibuka satu arah.** Field `counterpart.transfer_target` berisi alamat tujuan pada transfer keluar, tetapi `null` pada transfer masuk. Pada transfer keluar, alamat itu dulu diketikkan sendiri oleh user sehingga mengembalikannya tidak memberi informasi baru — dan memungkinkan fitur "kirim lagi" tanpa mengetik ulang. Pada transfer masuk, mengembalikannya berarti membocorkan email atau nomor HP pengirim kepada orang yang mungkin belum pernah mengetahuinya.
+
+**Jejak audit ditulis dari dalam transaksi yang sama.** Entri log untuk top up dan transfer dibuat di dalam `DB::transaction` yang memindahkan uangnya. Itu yang membuat jejaknya bisa dipercaya: uang tidak bisa berpindah tanpa tercatat, dan catatan tidak bisa bertahan dari perpindahan yang di-rollback. Tabelnya append-only — tidak ada kolom `updated_at`, tidak ada endpoint tulis, dan model menolak update maupun delete.
 
 **Test di MySQL, bukan SQLite.** Suite ini menguji rollback dan row locking, yang tidak dimodelkan sama oleh SQLite in-memory.
 
