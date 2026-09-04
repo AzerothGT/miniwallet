@@ -1,11 +1,11 @@
 import {
-  ArrowDown,
-  ArrowUp,
-  Coins,
-  Plus,
-  Prohibit,
-  Users,
-  Wallet,
+  ArrowDownIcon as ArrowDown,
+  ArrowUpIcon as ArrowUp,
+  CoinsIcon as Coins,
+  PlusIcon as Plus,
+  ProhibitIcon as Prohibit,
+  UsersIcon as Users,
+  WalletIcon as Wallet,
 } from '@phosphor-icons/react'
 import { AdminShell } from '../../components/AppShell.jsx'
 import { StatCard } from '../../components/admin/StatCard.jsx'

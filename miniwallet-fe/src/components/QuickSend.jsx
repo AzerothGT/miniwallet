@@ -1,4 +1,4 @@
-import { CaretRight, Plus } from '@phosphor-icons/react'
+import { CaretRightIcon as CaretRight, PlusIcon as Plus } from '@phosphor-icons/react'
 import { Avatar } from './Avatar.jsx'
 
 /**

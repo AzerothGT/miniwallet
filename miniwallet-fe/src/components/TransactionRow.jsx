@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Plus } from '@phosphor-icons/react'
+import { ArrowDownLeftIcon as ArrowDownLeft, ArrowUpRightIcon as ArrowUpRight, PlusIcon as Plus } from '@phosphor-icons/react'
 import { formatDateTime, formatTime } from '../lib/format.js'
 import { formatRupiah } from '../lib/format.js'
 import { Avatar } from './Avatar.jsx'

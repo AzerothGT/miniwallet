@@ -1,4 +1,4 @@
-import { Coins, Wallet } from '@phosphor-icons/react'
+import { CoinsIcon as Coins, WalletIcon as Wallet } from '@phosphor-icons/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PillButton } from '../../components/PillButton.jsx'
 
@@ -20,13 +20,12 @@ export default function Welcome() {
     <div className="bg-forest-900 on-forest min-h-dvh">
       <div className="mx-auto flex min-h-dvh w-full max-w-[26rem] flex-col px-6 pt-8 pb-8 lg:max-w-6xl lg:px-12 lg:py-10">
         <div className="flex items-center gap-2.5">
-          <span
-            className="bg-lime-zest text-forest-900 grid size-9 place-items-center
-              rounded-xl"
-            aria-hidden
-          >
-            <Wallet size={18} weight="bold" />
-          </span>
+          <img
+            src="/favicon.svg"
+            alt=""
+            aria-hidden="true"
+            className="size-9 rounded-xl"
+          />
           <span className="font-display font-bold text-white">Mini Wallet</span>
         </div>
 

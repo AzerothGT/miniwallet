@@ -1,9 +1,9 @@
 import {
-  At,
-  Envelope,
-  IdentificationCard,
-  Lock,
-  Phone,
+  AtIcon as At,
+  EnvelopeIcon as Envelope,
+  IdentificationCardIcon as IdentificationCard,
+  LockIcon as Lock,
+  PhoneIcon as Phone,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'

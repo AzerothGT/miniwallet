@@ -1,10 +1,10 @@
 import {
-  ArrowsLeftRight,
-  DotsNine,
-  Eye,
-  EyeSlash,
-  Plus,
-  QrCode,
+  ArrowsLeftRightIcon as ArrowsLeftRight,
+  DotsNineIcon as DotsNine,
+  EyeIcon as Eye,
+  EyeSlashIcon as EyeSlash,
+  PlusIcon as Plus,
+  QrCodeIcon as QrCode,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { formatRupiah } from '../lib/format.js'

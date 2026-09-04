@@ -1,4 +1,4 @@
-import { CircleNotch, Prohibit, ShieldCheck, UserCheck } from '@phosphor-icons/react'
+import { CircleNotchIcon as CircleNotch, ProhibitIcon as Prohibit, ShieldCheckIcon as ShieldCheck, UserCheckIcon as UserCheck } from '@phosphor-icons/react'
 import { Avatar } from '../Avatar.jsx'
 import { RoleBadge, StatusBadge } from './Badges.jsx'
 import { formatRupiah } from '../../lib/format.js'

@@ -1,4 +1,4 @@
-import { Receipt } from '@phosphor-icons/react'
+import { ReceiptIcon as Receipt } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { AppShell } from '../../components/AppShell.jsx'
 import { Pagination } from '../../components/Pagination.jsx'

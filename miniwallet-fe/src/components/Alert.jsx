@@ -1,4 +1,4 @@
-import { CheckCircle, WarningCircle, X } from '@phosphor-icons/react'
+import { CheckCircleIcon as CheckCircle, WarningCircleIcon as WarningCircle, XIcon as X } from '@phosphor-icons/react'
 
 const TONES = {
   error: {

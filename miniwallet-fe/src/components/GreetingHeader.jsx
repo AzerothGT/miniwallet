@@ -1,4 +1,4 @@
-import { Bell } from '@phosphor-icons/react'
+import { BellIcon as Bell } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { Avatar } from './Avatar.jsx'
 

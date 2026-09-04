@@ -1,4 +1,4 @@
-import { CaretRight, Receipt } from '@phosphor-icons/react'
+import { CaretRightIcon as CaretRight, ReceiptIcon as Receipt } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { TransactionRow } from './TransactionRow.jsx'
 

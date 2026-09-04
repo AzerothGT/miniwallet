@@ -1,4 +1,4 @@
-import { Backspace } from '@phosphor-icons/react'
+import { BackspaceIcon as Backspace } from '@phosphor-icons/react'
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '000', '0', 'del']
 

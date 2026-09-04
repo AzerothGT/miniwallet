@@ -1,12 +1,12 @@
 import {
-  ArrowsLeftRight,
-  ChartPieSlice,
-  House,
-  ListMagnifyingGlass,
-  Receipt,
-  ShieldCheck,
-  User,
-  Users,
+  ArrowsLeftRightIcon as ArrowsLeftRight,
+  ChartPieSliceIcon as ChartPieSlice,
+  HouseIcon as House,
+  ListMagnifyingGlassIcon as ListMagnifyingGlass,
+  ReceiptIcon as Receipt,
+  ShieldCheckIcon as ShieldCheck,
+  UserIcon as User,
+  UsersIcon as Users,
 } from '@phosphor-icons/react'
 
 /**

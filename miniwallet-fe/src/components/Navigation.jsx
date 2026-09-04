@@ -1,4 +1,4 @@
-import { ShieldCheck, SignOut, Wallet } from '@phosphor-icons/react'
+import { SignOutIcon as SignOut } from '@phosphor-icons/react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
 import { ADMIN_NAV_ITEMS, NAV_ITEMS } from '../lib/navItems.js'
@@ -22,20 +22,12 @@ export function SideNav({ items = NAV_ITEMS, admin = false }) {
     <aside className="hidden w-64 shrink-0 lg:block">
       <div className="sticky top-0 flex h-dvh flex-col px-4 py-6">
         <div className="flex items-center gap-2.5 px-2">
-          <span
-            className={`grid size-10 place-items-center rounded-2xl ${
-              admin
-                ? 'bg-ink text-lime-glow'
-                : 'bg-forest-800 text-lime-glow'
-            }`}
-            aria-hidden
-          >
-            {admin ? (
-              <ShieldCheck size={20} weight="bold" />
-            ) : (
-              <Wallet size={20} weight="bold" />
-            )}
-          </span>
+          <img
+            src="/favicon.svg"
+            alt=""
+            aria-hidden="true"
+            className="size-10 rounded-2xl"
+          />
 
           <div className="min-w-0">
             <span className="font-display block text-lg leading-tight font-bold">

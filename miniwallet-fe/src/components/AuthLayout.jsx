@@ -1,4 +1,4 @@
-import { Wallet } from '@phosphor-icons/react'
+
 import { Link } from 'react-router-dom'
 
 /**
@@ -27,13 +27,12 @@ export function AuthLayout({ title, subtitle, children, footer }) {
         />
 
         <Link to="/" className="relative inline-flex items-center gap-2.5">
-          <span
-            className="bg-lime-zest text-forest-900 grid size-9 place-items-center
-              rounded-xl"
-            aria-hidden
-          >
-            <Wallet size={18} weight="bold" />
-          </span>
+          <img
+            src="/favicon.svg"
+            alt=""
+            aria-hidden="true"
+            className="size-9 rounded-xl"
+          />
           <span className="font-display font-bold text-white">Mini Wallet</span>
         </Link>
 

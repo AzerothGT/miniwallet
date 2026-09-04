@@ -1,4 +1,4 @@
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CaretLeftIcon as CaretLeft, CaretRightIcon as CaretRight } from '@phosphor-icons/react'
 
 /**
  * Build a compact page window: 1 … 4 5 6 … 12

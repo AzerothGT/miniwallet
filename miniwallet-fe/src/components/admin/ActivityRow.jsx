@@ -1,4 +1,4 @@
-import { CaretDown, Globe } from '@phosphor-icons/react'
+import { CaretDownIcon as CaretDown, GlobeIcon as Globe } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { eventGlyph } from '../../lib/activityGlyphs.js'
 import { formatDateTime } from '../../lib/format.js'

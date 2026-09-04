@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp } from '@phosphor-icons/react'
+import { ArrowDownIcon as ArrowDown, ArrowUpIcon as ArrowUp } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { AppShell } from '../../components/AppShell.jsx'
 import { TransactionList } from '../../components/TransactionList.jsx'

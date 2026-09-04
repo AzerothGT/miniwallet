@@ -1,4 +1,4 @@
-import { ArrowRight } from '@phosphor-icons/react'
+import { ArrowRightIcon as ArrowRight } from '@phosphor-icons/react'
 
 /**
  * Pill CTA with a trailing circular arrow, matching the reference's

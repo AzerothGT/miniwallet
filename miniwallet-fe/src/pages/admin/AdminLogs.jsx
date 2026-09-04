@@ -1,7 +1,7 @@
 import {
-  ListMagnifyingGlass,
-  MagnifyingGlass,
-  ShieldCheck,
+  ListMagnifyingGlassIcon as ListMagnifyingGlass,
+  MagnifyingGlassIcon as MagnifyingGlass,
+  ShieldCheckIcon as ShieldCheck,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { AdminShell } from '../../components/AppShell.jsx'

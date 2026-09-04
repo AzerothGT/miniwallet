@@ -1,4 +1,4 @@
-import { Envelope, Lock } from '@phosphor-icons/react'
+import { EnvelopeIcon as Envelope, LockIcon as Lock } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth.js'

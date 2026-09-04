@@ -1,4 +1,4 @@
-import { Envelope, Lock, UserCircle } from '@phosphor-icons/react'
+import { EnvelopeIcon as Envelope, LockIcon as Lock, UserCircleIcon as UserCircle } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { TextField } from './TextField.jsx'
 

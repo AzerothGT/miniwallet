@@ -1,4 +1,4 @@
-import { Coins, Prohibit, Users, Wallet } from '@phosphor-icons/react'
+import { CoinsIcon as Coins, ProhibitIcon as Prohibit, UsersIcon as Users, WalletIcon as Wallet } from '@phosphor-icons/react'
 import { StatCard } from './StatCard.jsx'
 
 export default {

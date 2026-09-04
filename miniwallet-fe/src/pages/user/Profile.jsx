@@ -1,10 +1,10 @@
 import {
-  At,
-  Envelope,
-  Phone,
-  ShieldCheck,
-  SignOut,
-  Wallet,
+  AtIcon as At,
+  EnvelopeIcon as Envelope,
+  PhoneIcon as Phone,
+  ShieldCheckIcon as ShieldCheck,
+  SignOutIcon as SignOut,
+  WalletIcon as Wallet,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useAuth } from '../../auth/useAuth.js'

@@ -1,4 +1,4 @@
-import { NotePencil, UserCircle, X } from '@phosphor-icons/react'
+import { NotePencilIcon as NotePencil, UserCircleIcon as UserCircle, XIcon as X } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Alert } from '../../components/Alert.jsx'

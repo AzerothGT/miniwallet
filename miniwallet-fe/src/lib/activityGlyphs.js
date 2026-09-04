@@ -1,13 +1,13 @@
 import {
-  ArrowsLeftRight,
-  Plus,
-  Prohibit,
-  ShieldCheck,
-  SignIn,
-  SignOut,
-  UserCheck,
-  UserPlus,
-  Warning,
+  ArrowsLeftRightIcon as ArrowsLeftRight,
+  PlusIcon as Plus,
+  ProhibitIcon as Prohibit,
+  ShieldCheckIcon as ShieldCheck,
+  SignInIcon as SignIn,
+  SignOutIcon as SignOut,
+  UserCheckIcon as UserCheck,
+  UserPlusIcon as UserPlus,
+  WarningIcon as Warning,
 } from '@phosphor-icons/react'
 
 /**

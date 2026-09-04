@@ -1,9 +1,9 @@
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  MagnifyingGlass,
-  Plus,
-  Receipt,
+  ArrowDownLeftIcon as ArrowDownLeft,
+  ArrowUpRightIcon as ArrowUpRight,
+  MagnifyingGlassIcon as MagnifyingGlass,
+  PlusIcon as Plus,
+  ReceiptIcon as Receipt,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { AdminShell } from '../../components/AppShell.jsx'

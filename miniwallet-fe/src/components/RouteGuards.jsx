@@ -1,4 +1,4 @@
-import { CircleNotch } from '@phosphor-icons/react'
+import { CircleNotchIcon as CircleNotch } from '@phosphor-icons/react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.js'
 

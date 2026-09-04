@@ -1,4 +1,4 @@
-import { MagnifyingGlass, Users } from '@phosphor-icons/react'
+import { MagnifyingGlassIcon as MagnifyingGlass, UsersIcon as Users } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Alert } from '../../components/Alert.jsx'
 import { AdminShell } from '../../components/AppShell.jsx'
