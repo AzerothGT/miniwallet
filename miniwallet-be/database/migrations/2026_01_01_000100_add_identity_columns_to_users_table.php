@@ -13,9 +13,33 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('username', 30)->unique()->after('name');
-            $table->string('phone', 20)->unique()->after('email');
+        if (! Schema::hasColumn('users', 'username')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('username', 30)->after('name');
+            });
+        }
+
+        if (! Schema::hasColumn('users', 'phone')) {
+            Schema::table('users', function (Blueprint $table) {
+                // Nullable keeps this migration safe for an already-populated users table.
+                $table->string('phone', 20)->nullable()->after('email');
+            });
+        }
+
+        $indexes = Schema::getIndexes('users');
+        $uniqueColumns = array_map(
+            static fn (array $index): array => $index['columns'],
+            array_filter($indexes, static fn (array $index): bool => $index['unique']),
+        );
+
+        Schema::table('users', function (Blueprint $table) use ($uniqueColumns): void {
+            if (! in_array(['username'], $uniqueColumns, true)) {
+                $table->unique('username');
+            }
+
+            if (! in_array(['phone'], $uniqueColumns, true)) {
+                $table->unique('phone');
+            }
         });
     }
 
