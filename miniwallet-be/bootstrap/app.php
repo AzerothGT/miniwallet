@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // This is an API-only app; unauthenticated requests must render JSON,
+        // never redirect to a web login route that does not exist.
+        $middleware->redirectGuestsTo(fn (Request $request): ?string => null);
+
         // Runs before `auth:sanctum` so the httpOnly cookie can stand in for a
         // bearer header.
         $middleware->api(prepend: [
