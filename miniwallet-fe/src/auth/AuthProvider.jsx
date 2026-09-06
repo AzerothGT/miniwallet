@@ -50,6 +50,10 @@ export function AuthProvider({ children }) {
     return response.data.user
   }, [])
 
+  const updateUser = useCallback((changes) => {
+    setUser((current) => (current ? { ...current, ...changes } : current))
+  }, [])
+
   const logout = useCallback(async () => {
     try {
       await api.post('/logout')
@@ -67,9 +71,10 @@ export function AuthProvider({ children }) {
       initialising,
       login,
       register,
+      updateUser,
       logout,
     }),
-    [user, initialising, login, register, logout],
+    [user, initialising, login, register, updateUser, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -10,6 +10,8 @@ import { ScreenHeader } from '../../components/ScreenHeader.jsx'
 import { TextField } from '../../components/TextField.jsx'
 import api from '../../lib/api.js'
 import { formatRupiah, withThousandSeparators } from '../../lib/format.js'
+import { useAuth } from '../../auth/useAuth.js'
+import { TransferConfirmationModal } from '../../components/TransferConfirmationModal.jsx'
 import { useAmountKeyboard } from '../../lib/useAmountKeyboard.js'
 import { useApiResource } from '../../lib/useApiResource.js'
 import { validateAmount, validateRecipient } from '../../lib/validation.js'
@@ -17,6 +19,7 @@ import { validateAmount, validateRecipient } from '../../lib/validation.js'
 export default function Transfer() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, updateUser } = useAuth()
 
   /*
    * Arriving from Quick Send pre-fills the recipient.
@@ -33,6 +36,10 @@ export default function Transfer() {
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [modalMode, setModalMode] = useState(null)
+  const [pin, setPin] = useState('')
+  const [pinConfirmation, setPinConfirmation] = useState('')
+  const [modalError, setModalError] = useState('')
 
   /*
    * Whether the chosen contact is still the target.
@@ -80,20 +87,62 @@ export default function Transfer() {
 
   const canSubmit = !recipientError && !amountError && !exceedsBalance
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault()
 
     if (submitting || !canSubmit) return
 
-    setSubmitting(true)
     setErrors({})
     setServerError('')
+    setModalError('')
+    setModalMode(user?.has_security_pin ? 'review' : 'setup')
+  }
+
+  async function handlePinSetup(event) {
+    event.preventDefault()
+
+    if (pin.length !== 6 || pin !== pinConfirmation) {
+      setModalError(
+        pin.length !== 6
+          ? 'Security PIN harus terdiri dari 6 digit.'
+          : 'Konfirmasi Security PIN tidak cocok.',
+      )
+      return
+    }
+
+    setSubmitting(true)
+    setModalError('')
+
+    try {
+      await api.post('/security-pin', {
+        pin,
+        pin_confirmation: pinConfirmation,
+      })
+      updateUser({ has_security_pin: true })
+      setPin('')
+      setPinConfirmation('')
+      setModalMode('review')
+    } catch (error) {
+      setModalError(error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleTransferConfirmation(event) {
+    event.preventDefault()
+
+    if (submitting || pin.length !== 6) return
+
+    setSubmitting(true)
+    setModalError('')
 
     try {
       await api.post('/transfer', {
         recipient: recipient.trim(),
         amount: Number(amount),
         description: description.trim() || undefined,
+        security_pin: pin,
       })
 
       navigate('/dashboard', {
@@ -103,23 +152,30 @@ export default function Transfer() {
         },
       })
     } catch (error) {
-      setErrors(error.fieldErrors ?? {})
-
-      // 422 messages belong under their field. A 400 such as "saldo tidak
-      // cukup" concerns the request as a whole, so it becomes a banner.
-      if (Object.keys(error.fieldErrors ?? {}).length === 0) {
-        const shortfall = error.details?.shortfall
-
-        setServerError(
-          error.code === 'insufficient_balance' && shortfall
-            ? `${error.message} Kekurangan ${formatRupiah(shortfall)}.`
-            : error.message,
-        )
-      }
-
+      setModalError(error.message)
       setSubmitting(false)
     }
   }
+
+  function openPinConfirmation() {
+    setPin('')
+    setModalError('')
+    setModalMode('pin')
+  }
+
+  function closeModal() {
+    if (submitting) return
+
+    setModalMode(null)
+    setPin('')
+    setPinConfirmation('')
+    setModalError('')
+  }
+
+  const balanceAfter = Number(balance ?? 0) - Number(amount || 0)
+  const recipientLabel = pickedContact
+    ? `${pickedContact.name} · ${pickedContact.transfer_target}`
+    : recipient.trim()
 
   const amountMessage =
     errors.amount?.[0] ??
@@ -246,6 +302,24 @@ export default function Transfer() {
           </div>
         </div>
       </form>
+
+      <TransferConfirmationModal
+        open={modalMode !== null}
+        mode={modalMode}
+        recipient={recipientLabel}
+        amount={Number(amount || 0)}
+        balanceAfter={balanceAfter}
+        pin={pin}
+        pinConfirmation={pinConfirmation}
+        error={modalError}
+        submitting={submitting}
+        onPinChange={setPin}
+        onPinConfirmationChange={setPinConfirmation}
+        onBack={() => setModalMode(modalMode === 'pin' ? 'review' : null)}
+        onReview={openPinConfirmation}
+        onSubmit={modalMode === 'setup' ? handlePinSetup : handleTransferConfirmation}
+        onClose={closeModal}
+      />
     </FocusShell>
   )
 }

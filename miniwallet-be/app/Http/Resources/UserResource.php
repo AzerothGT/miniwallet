@@ -27,6 +27,7 @@ class UserResource extends JsonResource
             // every admin endpoint re-checks the role independently.
             'role' => $this->role->value,
             'is_admin' => $this->isAdmin(),
+            'has_security_pin' => $this->security_pin !== null,
         ];
     }
 }

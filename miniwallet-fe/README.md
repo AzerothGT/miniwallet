@@ -56,7 +56,7 @@ npm run build-storybook  # Storybook statis ke storybook-static/
 | `/register` | guest | Form pendaftaran |
 | `/dashboard` | terautentikasi | Saldo, kirim cepat, 5 transaksi terakhir |
 | `/topup` | terautentikasi | Top up dengan keypad numerik |
-| `/transfer` | terautentikasi | Transfer dengan keypad numerik |
+| `/transfer` | terautentikasi | Transfer dengan keypad numerik, review, dan security PIN |
 | `/history` | terautentikasi | Riwayat penuh: paginasi, filter, kelompok tanggal |
 | `/report` | terautentikasi | Ringkasan masuk/keluar dan grafik 7 hari |
 | `/profile` | terautentikasi | Info akun, catatan keamanan, logout |
@@ -66,6 +66,10 @@ npm run build-storybook  # Storybook statis ke storybook-static/
 | `/admin/logs` | admin | Jejak aktivitas, append-only |
 
 `ProtectedRoute` melempar user tanpa sesi ke `/login`; `GuestRoute` melempar user yang sudah login ke `/dashboard`.
+
+### Review transfer dan Security PIN
+
+Menekan `Lanjutkan` membuka review transfer sebelum request dikirim. Pada transfer pertama, pengguna diminta membuat Security PIN 6 digit. PIN disimpan sebagai hash di backend dan diminta kembali saat konfirmasi transfer; PIN tidak disimpan di browser.
 
 ## Layout: Mobile dan Desktop
 

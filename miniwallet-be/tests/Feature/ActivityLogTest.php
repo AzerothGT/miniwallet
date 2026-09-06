@@ -4,6 +4,7 @@ use App\Enums\ActivityEvent;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\WalletService;
+use Illuminate\Support\Facades\Hash;
 
 test('registration is recorded', function () {
     $this->postJson('/api/register', [
@@ -109,7 +110,10 @@ test('a top up is recorded with its amount and resulting balance', function () {
 });
 
 test('a transfer is recorded once, naming both parties', function () {
-    $sender = User::factory()->withWallet(100_000)->create(['name' => 'Ian']);
+    $sender = User::factory()->withWallet(100_000)->create([
+        'name' => 'Ian',
+        'security_pin' => Hash::make('123456'),
+    ]);
     $recipient = User::factory()->withWallet()->create([
         'name' => 'Budi',
         'username' => 'budi',
@@ -120,6 +124,7 @@ test('a transfer is recorded once, naming both parties', function () {
         ->postJson('/api/transfer', [
             'recipient' => 'budi@example.com',
             'amount' => 30_000,
+            'security_pin' => '123456',
         ])
         ->assertCreated();
 
@@ -155,13 +160,16 @@ test('a rolled back transfer leaves no log entry', function () {
 });
 
 test('a refused transfer is not recorded as having happened', function () {
-    $sender = User::factory()->withWallet(10_000)->create();
+    $sender = User::factory()->withWallet(10_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     User::factory()->withWallet()->create(['email' => 'budi@example.com']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'budi@example.com',
             'amount' => 50_000,
+            'security_pin' => '123456',
         ])
         ->assertStatus(400);
 

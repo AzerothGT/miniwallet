@@ -19,6 +19,7 @@ class TransferRequest extends AmountRequest
         return [
             'recipient' => ['bail', 'required', 'string', 'max:255'],
             ...$this->amountRules(),
+            'security_pin' => ['bail', 'nullable', 'digits:6', 'numeric'],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -56,6 +57,11 @@ class TransferRequest extends AmountRequest
     public function amount(): int
     {
         return (int) $this->validated('amount');
+    }
+
+    public function securityPin(): string
+    {
+        return $this->string('security_pin')->toString();
     }
 
     public function description(): ?string

@@ -28,6 +28,7 @@ use Laravel\Sanctum\TransientToken;
  * @property CarbonInterface|null $suspended_at
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property string|null $security_pin
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -35,7 +36,7 @@ use Laravel\Sanctum\TransientToken;
  * @property-read Collection<int, Transaction> $transactions
  */
 #[Fillable(['name', 'username', 'email', 'phone', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'security_pin'])]
 class User extends Authenticatable
 {
     /**

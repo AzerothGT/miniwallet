@@ -13,6 +13,7 @@ use App\Services\WalletService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 #[Group(
     name: 'Wallet',
@@ -107,6 +108,20 @@ class WalletController extends Controller
     {
         /** @var User $sender */
         $sender = $request->user();
+
+        if ($sender->security_pin === null) {
+            return response()->json([
+                'message' => 'Buat Security PIN terlebih dahulu.',
+                'code' => 'security_pin_required',
+            ], 403);
+        }
+
+        if (! Hash::check($request->securityPin(), $sender->security_pin)) {
+            return response()->json([
+                'message' => 'Security PIN salah.',
+                'code' => 'security_pin_invalid',
+            ], 403);
+        }
 
         $recipient = $request->recipient();
 

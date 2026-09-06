@@ -6,15 +6,51 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\WalletService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+test('a transfer requires the sender security pin', function () {
+    $sender = User::factory()->withWallet(100_000)->create();
+    User::factory()->withWallet()->create(['email' => 'penerima@example.com']);
+
+    $this->actingAs($sender)
+        ->postJson('/api/transfer', [
+            'recipient' => 'penerima@example.com',
+            'amount' => 30_000,
+        ])
+        ->assertStatus(403)
+        ->assertJsonPath('code', 'security_pin_required');
+});
+
+test('a transfer rejects an incorrect security pin without moving money', function () {
+    $sender = User::factory()->withWallet(100_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
+    User::factory()->withWallet()->create(['email' => 'penerima@example.com']);
+
+    $this->actingAs($sender)
+        ->postJson('/api/transfer', [
+            'recipient' => 'penerima@example.com',
+            'amount' => 30_000,
+            'security_pin' => '654321',
+        ])
+        ->assertStatus(403)
+        ->assertJsonPath('code', 'security_pin_invalid');
+
+    expect($sender->fresh()->wallet->balance)->toBe(100_000);
+    $this->assertDatabaseCount('transactions', 0);
+});
 
 test('a transfer moves money and records both sides of the mutation', function () {
-    $sender = User::factory()->withWallet(100_000)->create();
+    $sender = User::factory()->withWallet(100_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     $recipient = User::factory()->withWallet(5_000)->create(['email' => 'penerima@example.com']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'penerima@example.com',
             'amount' => 30_000,
+            'security_pin' => '123456',
             'description' => 'Bayar makan siang',
         ])
         ->assertCreated()
@@ -33,13 +69,16 @@ test('a transfer moves money and records both sides of the mutation', function (
 });
 
 test('a transfer can target the recipient by phone number', function () {
-    $sender = User::factory()->withWallet(100_000)->create();
+    $sender = User::factory()->withWallet(100_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     $recipient = User::factory()->withWallet()->create(['phone' => '081298765432']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => '081298765432',
             'amount' => 25_000,
+            'security_pin' => '123456',
         ])
         ->assertCreated();
 
@@ -47,13 +86,16 @@ test('a transfer can target the recipient by phone number', function () {
 });
 
 test('a transfer is refused when the balance is insufficient', function () {
-    $sender = User::factory()->withWallet(10_000)->create();
+    $sender = User::factory()->withWallet(10_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     $recipient = User::factory()->withWallet(0)->create(['email' => 'penerima@example.com']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'penerima@example.com',
             'amount' => 50_000,
+            'security_pin' => '123456',
         ])
         ->assertStatus(400)
         ->assertJsonPath('code', 'insufficient_balance')
@@ -67,13 +109,16 @@ test('a transfer is refused when the balance is insufficient', function () {
 });
 
 test('a balance can never go negative', function () {
-    $sender = User::factory()->withWallet(1_000)->create();
+    $sender = User::factory()->withWallet(1_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     $recipient = User::factory()->withWallet()->create(['email' => 'penerima@example.com']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'penerima@example.com',
             'amount' => 1_000_000,
+            'security_pin' => '123456',
         ])
         ->assertStatus(400);
 
@@ -81,12 +126,15 @@ test('a balance can never go negative', function () {
 });
 
 test('a transfer to an unknown recipient is refused', function () {
-    $sender = User::factory()->withWallet(100_000)->create();
+    $sender = User::factory()->withWallet(100_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'tidakada@example.com',
             'amount' => 10_000,
+            'security_pin' => '123456',
         ])
         ->assertStatus(400)
         ->assertJsonPath('code', 'recipient_not_found');
@@ -96,12 +144,16 @@ test('a transfer to an unknown recipient is refused', function () {
 });
 
 test('a user cannot transfer to themselves', function () {
-    $sender = User::factory()->withWallet(100_000)->create(['email' => 'ian@example.com']);
+    $sender = User::factory()->withWallet(100_000)->create([
+        'email' => 'ian@example.com',
+        'security_pin' => Hash::make('123456'),
+    ]);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'ian@example.com',
             'amount' => 10_000,
+            'security_pin' => '123456',
         ])
         ->assertStatus(400)
         ->assertJsonPath('code', 'self_transfer');
@@ -111,13 +163,16 @@ test('a user cannot transfer to themselves', function () {
 });
 
 test('transfer rejects invalid amounts without writing to the database', function ($amount, string $expectedMessage) {
-    $sender = User::factory()->withWallet(100_000)->create();
+    $sender = User::factory()->withWallet(100_000)->create([
+        'security_pin' => Hash::make('123456'),
+    ]);
     User::factory()->withWallet()->create(['email' => 'penerima@example.com']);
 
     $this->actingAs($sender)
         ->postJson('/api/transfer', [
             'recipient' => 'penerima@example.com',
             'amount' => $amount,
+            'security_pin' => '123456',
         ])
         ->assertStatus(422)
         ->assertJsonPath('errors.amount.0', $expectedMessage);
