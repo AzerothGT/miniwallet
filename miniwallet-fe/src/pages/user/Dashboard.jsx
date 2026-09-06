@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <GreetingHeader user={user} />
+      <GreetingHeader user={user} transactions={transactions} />
 
       {/*
         Two columns from `lg`: balance and shortcuts on the left, history on the
