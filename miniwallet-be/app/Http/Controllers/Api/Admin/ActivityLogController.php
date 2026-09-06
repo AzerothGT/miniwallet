@@ -12,40 +12,39 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-#[Group(name: 'Administrasi', weight: 3)]
+#[Group(name: 'Administration', weight: 3)]
 class ActivityLogController extends Controller
 {
     /**
-     * Jejak aktivitas
+     * Activity log
      *
-     * Catatan seluruh kejadian di platform: registrasi, login (termasuk yang
-     * gagal), logout, top up, transfer, serta tindakan administrator terhadap
-     * akun lain.
+     * Records every event on the platform: registration, login (including failed
+     * attempts), logout, top-ups, transfers, and administrator actions on other
+     * accounts.
      *
-     * Log bersifat append-only. Tidak ada endpoint untuk mengubah maupun menghapus
-     * baris, dan model menolaknya di tingkat aplikasi. Jejak audit hanya berguna
-     * bila tidak bisa ditulis ulang diam-diam.
+     * Logs are append-only. There is no endpoint for updating or deleting rows,
+     * and the model rejects those operations at the application level. An audit
+     * trail is useful only when it cannot be silently rewritten.
      *
-     * Setiap baris memiliki dua kemungkinan pihak:
+     * Each row has two possible parties:
      *
-     * - `user` adalah akun yang menjadi pokok kejadian
-     * - `actor` adalah pihak yang melakukannya, bila berbeda, misalnya
-     *   administrator yang menonaktifkan akun orang lain
+     * - `user` is the account affected by the event
+     * - `actor` is the party who performed it, when different, such as an
+     *   administrator disabling another account
      *
-     * Filter yang tersedia:
+     * Available filters:
      *
-     * - `category`: `auth`, `wallet`, atau `admin`
-     * - `event`: nilai spesifik seperti `login_failed` atau `transfer_sent`
-     * - `user_id`: kejadian yang melibatkan user tertentu, sebagai pokok maupun
-     *   sebagai pelaku
-     * - `search`: deskripsi atau alamat IP
-     * - `from` dan `to`: rentang tanggal dengan format `YYYY-MM-DD`
+     * - `category`: `auth`, `wallet`, or `admin`
+     * - `event`: a specific value such as `login_failed` or `transfer_sent`
+     * - `user_id`: events involving a specific user, as the subject or actor
+     * - `search`: description or IP address
+     * - `from` and `to`: date range in `YYYY-MM-DD` format
      *
-     * Percobaan login yang gagal ikut dicatat meskipun emailnya tidak terdaftar,
-     * justru karena kasus itulah yang paling perlu terlihat. Password yang dikirim
-     * tidak pernah disimpan dalam bentuk apa pun.
+     * Failed login attempts are recorded even when the email is not registered,
+     * precisely because those attempts need to be visible. Submitted passwords are
+     * never stored in any form.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
      * @response 401 array{message: string}
@@ -94,13 +93,13 @@ class ActivityLogController extends Controller
     }
 
     /**
-     * Pilihan filter jejak aktivitas
+     * Activity log filter options
      *
-     * Daftar kategori dan jenis kejadian yang tersedia, agar klien tidak perlu
-     * menyalin nilai enum ke dalam kodenya sendiri. Menambah satu jenis kejadian
-     * di server akan otomatis muncul di sini.
+     * Lists the available categories and event types so clients do not need to
+     * copy enum values into their own code. Adding an event type on the server
+     * automatically makes it appear here.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array{categories: array<int, array{value: string, label: string}>, events: array<int, array{value: string, label: string, category: string}>}}
      * @response 401 array{message: string}

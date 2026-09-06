@@ -19,8 +19,8 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
 #[Group(
-    name: 'Autentikasi',
-    description: 'Registrasi, login, profil, dan logout. Endpoint di bawah ini adalah pintu masuk ke seluruh API.',
+    name: 'Authentication',
+    description: 'Registration, login, profile, and logout. These endpoints are the entry point to the entire API.',
     weight: 1,
 )]
 class AuthController extends Controller
@@ -32,17 +32,17 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Registrasi akun
+     * Register an account
      *
-     * Membuat akun beserta wallet-nya dalam satu database transaction, sehingga
-     * tidak mungkin ada user tanpa wallet untuk menampung uangnya.
+     * Creates an account and its wallet within a single database transaction, so
+     * a user can never exist without a wallet to hold their funds.
      *
-     * Sanctum token dikembalikan pada response body (untuk API client dan tombol
-     * "Try it" di halaman ini) sekaligus dipasang sebagai cookie `httpOnly`
-     * (untuk SPA di browser).
+     * The Sanctum token is returned in the response body (for API clients and the
+     * "Try it" button on this page) and also set as an `httpOnly` cookie (for
+     * browser-based SPAs).
      *
-     * Field `role` dan `suspended_at` tidak dapat diisi lewat endpoint ini. Akun
-     * baru selalu berperan `user` dan berstatus aktif.
+     * The `role` and `suspended_at` fields cannot be set through this endpoint.
+     * New accounts always have the `user` role and an active status.
      *
      * @response 201 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
@@ -78,13 +78,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Login
+     * Log in
      *
-     * Mengembalikan Sanctum token dan memasangnya sebagai cookie `httpOnly`.
+     * Returns a Sanctum token and sets it as an `httpOnly` cookie.
      *
-     * Email yang tidak dikenal dan password yang salah menghasilkan pesan yang
-     * sama persis. Membedakan keduanya akan memungkinkan penyerang menebak akun
-     * mana yang terdaftar.
+     * Unknown emails and incorrect passwords produce exactly the same message.
+     * Distinguishing between them would allow an attacker to determine which
+     * accounts are registered.
      *
      * @response 200 array{message: string, token: string, user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 422 array{message: string, errors: array<string, array<int, string>>}
@@ -122,14 +122,12 @@ class AuthController extends Controller
     }
 
     /**
-     * Profil user saat ini
+     * Current user profile
      *
-     * Dipakai SPA untuk menjawab "apakah saya sudah login?" tanpa membaca isi
-     * storage, karena token tersimpan di cookie `httpOnly` yang tidak dapat
-     * diakses JavaScript.
+     * Used by the SPA to answer "am I logged in?" without reading storage, since
+     * the token is stored in an `httpOnly` cookie that JavaScript cannot access.
      *
-     * Tetap dapat diakses oleh akun yang dinonaktifkan, agar pemiliknya bisa
-     * mengetahui statusnya sendiri.
+     * Remains accessible to suspended accounts so owners can see their own status.
      *
      * @response 200 array{user: array{id: int, name: string, username: string, email: string, phone: string, role: string, is_admin: bool}}
      * @response 401 array{message: string}
@@ -145,11 +143,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout
+     * Log out
      *
-     * Mencabut hanya token yang dipakai pada request ini, sehingga keluar dari
-     * satu perangkat tidak mengeluarkan user dari perangkat lainnya. Cookie
-     * `httpOnly` ikut dihapus.
+     * Revokes only the token used by this request, so logging out from one device
+     * does not log the user out of other devices. The `httpOnly` cookie is also
+     * removed.
      *
      * @response 200 array{message: string}
      * @response 401 array{message: string}

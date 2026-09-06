@@ -10,31 +10,29 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-#[Group(name: 'Administrasi', weight: 3)]
+#[Group(name: 'Administration', weight: 3)]
 class TransactionController extends Controller
 {
     /**
-     * Ledger seluruh platform
+     * Platform-wide ledger
      *
-     * Daftar transaksi milik semua pengguna, berbeda dengan `GET /api/transactions`
-     * yang selalu dibatasi pada akun pemanggil.
+     * Lists transactions belonging to all users, unlike `GET /api/transactions`,
+     * which is always restricted to the calling account.
      *
-     * Kedua sisi sebuah transfer muncul sebagai baris terpisah, dan itu memang
-     * disengaja: administrator yang menelusuri sengketa perlu melihat pemotongan
-     * dan penambahan sebagai catatan yang masing-masing dapat diverifikasi.
-     * Keduanya dipasangkan lewat field `reference` yang sama.
+     * Both sides of a transfer appear as separate rows by design: an
+     * administrator investigating a dispute needs to see the debit and credit as
+     * individually verifiable records. They are paired through the same
+     * `reference` field.
      *
-     * Setiap baris menyertakan `owner`, yaitu pemilik mutasi tersebut — field yang
-     * tidak ada pada endpoint versi pengguna, karena di sana pemiliknya selalu
-     * pemanggil itu sendiri.
+     * Each row includes `owner`, the owner of that ledger entry — a field that is
+     * absent from the user endpoint because its owner is always the caller there.
      *
-     * Filter yang tersedia:
-     * - `type`: `topup`, `transfer_in`, atau `transfer_out`
-     * - `user_id`: mutasi yang melibatkan user tertentu, sebagai pemilik maupun
-     *   sebagai pihak lawan
-     * - `search`: `reference`, nama, atau username pemilik
+     * Available filters:
+     * - `type`: `topup`, `transfer_in`, or `transfer_out`
+     * - `user_id`: entries involving a specific user, as owner or counterpart
+     * - `search`: the owner's `reference`, name, or username
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
      * @response 401 array{message: string}

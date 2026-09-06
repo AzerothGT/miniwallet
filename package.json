@@ -1,0 +1,8 @@
+{
+  "name": "miniwallet",
+  "private": true,
+  "description": "Root manifest for the Railway Infrastructure as Code authoring file in .railway/",
+  "devDependencies": {
+    "railway": "3.11.0"
+  }
+}

@@ -10,29 +10,29 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 #[Group(
-    name: 'Administrasi',
-    description: 'Pengawasan platform: statistik, pengelolaan akun, dan ledger seluruh transaksi. Hanya dapat diakses akun berperan `admin`, dan peran diperiksa ulang di server pada setiap request.',
+    name: 'Administration',
+    description: 'Platform oversight: statistics, account management, and the complete transaction ledger. Accessible only to accounts with the `admin` role, which is re-checked on the server for every request.',
     weight: 3,
 )]
 class StatsController extends Controller
 {
     /**
-     * Statistik platform
+     * Platform statistics
      *
-     * Ringkasan seluruh platform: jumlah pengguna, total saldo, volume transaksi,
-     * dan volume harian tujuh hari terakhir.
+     * Platform-wide summary: user count, total balance, transaction volume, and
+     * daily volume for the last seven days.
      *
-     * Semua agregat dihitung langsung di database, bukan dengan memuat baris ke
-     * PHP. Database dapat menjumlahkan sejuta transaksi tanpa satu pun melintasi
-     * jaringan, dan angkanya tetap benar seiring tabel bertumbuh.
+     * All aggregates are calculated directly in the database instead of loading
+     * rows into PHP. The database can sum a million transactions without sending
+     * a single row over the network, while remaining accurate as the table grows.
      *
-     * Catatan penting soal `transactions.transfer`: satu transfer menulis dua
-     * baris (sisi keluar dan sisi masuk), sehingga hanya sisi keluar yang
-     * dihitung. Menjumlahkan keduanya akan melaporkan dua kali lipat uang yang
-     * sebenarnya berpindah. Sebaliknya `transactions.total` memang menghitung
-     * seluruh baris, karena itu adalah jumlah catatan pada ledger.
+     * Important note about `transactions.transfer`: one transfer writes two rows
+     * (outgoing and incoming legs), so only the outgoing leg is counted. Summing
+     * both would report twice the money that actually moved. In contrast,
+     * `transactions.total` counts every row because it represents the number of
+     * ledger records.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array{users: array{total: int, admins: int, suspended: int, new_this_week: int}, wallets: array{total_balance: int}, transactions: array{total: int, topup: array{count: int, total: int}, transfer: array{count: int, total: int}}, daily: array<int, array{day: string, total: int, count: int}>}}
      * @response 401 array{message: string}

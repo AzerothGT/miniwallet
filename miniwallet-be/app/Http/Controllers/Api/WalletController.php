@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 
 #[Group(
     name: 'Wallet',
-    description: 'Saldo, top up, dan transfer. Semua endpoint di bawah ini bekerja pada wallet milik user yang sedang login.',
+    description: 'Balance, top-ups, and transfers. All endpoints below operate on the currently authenticated user\'s wallet.',
     weight: 2,
 )]
 class WalletController extends Controller
@@ -24,11 +24,11 @@ class WalletController extends Controller
     public function __construct(private readonly WalletService $wallets) {}
 
     /**
-     * Lihat saldo
+     * View balance
      *
-     * Mengembalikan saldo wallet milik user yang sedang login. Nilai `balance`
-     * berupa bilangan bulat rupiah untuk perhitungan, sedangkan
-     * `balance_formatted` sudah siap ditampilkan.
+     * Returns the wallet balance of the currently authenticated user. The
+     * `balance` value is a whole-number Rupiah amount for calculations, while
+     * `balance_formatted` is ready for display.
      *
      * @response 200 array{data: array{balance: int, balance_formatted: string, updated_at: string|null}}
      * @response 401 array{message: string}
@@ -43,15 +43,15 @@ class WalletController extends Controller
     }
 
     /**
-     * Top up saldo
+     * Top up balance
      *
-     * Menambah saldo ke wallet milik sendiri. Nominal wajib bilangan bulat dalam
-     * batas yang dikonfigurasi; nilai lain ditolak dengan status `422` dan tidak
-     * ada apa pun yang tersimpan ke database.
+     * Adds funds to the user's own wallet. The amount must be a whole number
+     * within the configured limits; other values are rejected with status `422`
+     * and nothing is persisted to the database.
      *
-     * Prosesnya berjalan di dalam database transaction dengan baris wallet
-     * terkunci, sehingga dua request bersamaan tidak dapat membaca saldo awal
-     * yang sama dan menghilangkan salah satu penambahan.
+     * The process runs inside a database transaction with the wallet row locked,
+     * so concurrent requests cannot read the same starting balance and lose one
+     * of the additions.
      *
      * @response 201 array{message: string, transaction: array<string, mixed>, wallet: array<string, mixed>}
      * @response 401 array{message: string}
@@ -77,24 +77,23 @@ class WalletController extends Controller
     }
 
     /**
-     * Transfer saldo
+     * Transfer balance
      *
-     * Mengirim saldo ke user lain, yang diidentifikasi lewat **email atau nomor
-     * HP** pada field `recipient`.
+     * Sends funds to another user identified by **email or phone number** in the
+     * `recipient` field.
      *
-     * Pemotongan dan penambahan saldo terjadi di dalam satu database transaction
-     * dengan kedua baris wallet dikunci lebih dulu (`lockForUpdate`) dan diurutkan
-     * berdasarkan `id`. Urutan tetap itu mencegah deadlock ketika A mengirim ke B
-     * bersamaan dengan B mengirim ke A. Jika ada kegagalan setelah saldo pengirim
-     * terpotong, seluruh transaksi dibatalkan — transfer sebagian tidak mungkin
-     * tersimpan maupun terlihat.
+     * The debit and credit occur within one database transaction. Both wallet
+     * rows are locked first with `lockForUpdate` and ordered by `id`. This fixed
+     * order prevents deadlocks when A sends to B while B sends to A. If a failure
+     * occurs after debiting the sender, the entire transaction is rolled back —
+     * a partial transfer can never be stored or exposed.
      *
-     * Satu transfer menghasilkan dua baris mutasi dengan `reference` yang sama:
-     * `transfer_out` untuk pengirim dan `transfer_in` untuk penerima.
+     * One transfer produces two ledger entries with the same `reference`:
+     * `transfer_out` for the sender and `transfer_in` for the recipient.
      *
-     * Status `400` menandakan permintaan valid secara format tetapi melanggar
-     * aturan bisnis. Periksa field `code` untuk membedakannya:
-     * `insufficient_balance`, `recipient_not_found`, atau `self_transfer`.
+     * Status `400` indicates a request that is valid in format but violates a
+     * business rule. Check the `code` field to distinguish:
+     * `insufficient_balance`, `recipient_not_found`, or `self_transfer`.
      *
      * @response 201 array{message: string, transaction: array<string, mixed>, wallet: array<string, mixed>}
      * @response 400 array{message: string, code: string}

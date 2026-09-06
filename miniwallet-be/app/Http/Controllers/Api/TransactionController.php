@@ -14,18 +14,18 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class TransactionController extends Controller
 {
     /**
-     * Riwayat mutasi
+     * Transaction history
      *
-     * Mengembalikan mutasi milik user yang sedang login, baik uang masuk maupun
-     * keluar, terbaru lebih dulu.
+     * Returns the currently authenticated user's entries, both incoming and
+     * outgoing, with the newest entries first.
      *
-     * Query dijalankan melalui relasi `transactions` milik user itu sendiri,
-     * sehingga tidak ada jalur kode yang dapat mengembalikan baris milik user
-     * lain, apa pun query parameter yang dikirim.
+     * The query runs through the user's own `transactions` relationship, so no
+     * code path can return another user's rows, regardless of the query
+     * parameters provided.
      *
-     * Filter opsional lewat `type`: `topup`, `transfer_in`, atau `transfer_out`.
-     * Nilai yang tidak dikenal diabaikan (mengembalikan semua) alih-alih
-     * menghasilkan daftar kosong yang membingungkan.
+     * Optional `type` filter: `topup`, `transfer_in`, or `transfer_out`.
+     * Unknown values are ignored (returning all entries) instead of producing a
+     * confusing empty list.
      *
      * @response 200 array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
      * @response 401 array{message: string}

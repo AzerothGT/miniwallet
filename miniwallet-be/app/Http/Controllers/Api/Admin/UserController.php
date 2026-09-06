@@ -14,21 +14,22 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\Rule;
 
-#[Group(name: 'Administrasi', weight: 3)]
+#[Group(name: 'Administration', weight: 3)]
 class UserController extends Controller
 {
     public function __construct(private readonly ActivityLogger $activity) {}
 
     /**
-     * Daftar pengguna
+     * User list
      *
-     * Mendukung pencarian lewat `search` (nama, username, email, atau nomor HP),
-     * serta filter `role` (`user` / `admin`) dan `status` (`active` / `suspended`).
+     * Supports searching by `search` (name, username, email, or phone number),
+     * as well as filtering by `role` (`user` / `admin`) and `status` (`active` /
+     * `suspended`).
      *
-     * Setiap baris menyertakan saldo dan jumlah transaksi, sehingga pemeriksaan
-     * satu akun tidak memerlukan request tambahan.
+     * Each row includes the balance and transaction count, so inspecting an
+     * account does not require an additional request.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array<int, array<string, mixed>>, meta: array<string, mixed>}
      * @response 401 array{message: string}
@@ -69,9 +70,9 @@ class UserController extends Controller
     }
 
     /**
-     * Detail satu pengguna
+     * User details
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{data: array<string, mixed>}
      * @response 401 array{message: string}
@@ -86,24 +87,23 @@ class UserController extends Controller
     }
 
     /**
-     * Nonaktifkan atau aktifkan akun
+     * Suspend or activate an account
      *
-     * Kirim `suspended: true` untuk menonaktifkan, `false` untuk mengaktifkan
-     * kembali.
+     * Send `suspended: true` to suspend an account, or `false` to activate it
+     * again.
      *
-     * Menonaktifkan akun juga **mencabut seluruh token** milik akun tersebut.
-     * Tanpa itu, token yang sudah terbit akan tetap berfungsi sampai kedaluwarsa
-     * — akun "nonaktif" yang masih bisa melakukan transfer.
+     * Suspending an account also **revokes all tokens** belonging to it. Without
+     * this, already-issued tokens would continue working until they expired —
+     * leaving a "suspended" account able to make transfers.
      *
-     * Akun yang dinonaktifkan tetap dapat mengakses `GET /api/me` dan
-     * `POST /api/logout`, agar pemiliknya bisa mengetahui statusnya dan keluar.
-     * Seluruh endpoint yang berkaitan dengan uang dijawab `403` dengan
-     * `code: account_suspended`.
+     * Suspended accounts can still access `GET /api/me` and `POST /api/logout`,
+     * so owners can see their status and log out. All money-related endpoints
+     * return `403` with `code: account_suspended`.
      *
-     * Administrator tidak dapat menonaktifkan akunnya sendiri: hal itu akan
-     * mengunci operator keluar tanpa jalan kembali melalui antarmuka.
+     * Administrators cannot suspend their own account: doing so would lock the
+     * operator out with no way back in through the interface.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{message: string, data: array<string, mixed>}
      * @response 401 array{message: string}
@@ -153,15 +153,15 @@ class UserController extends Controller
     }
 
     /**
-     * Ubah peran akun
+     * Change an account's role
      *
-     * Nilai `role` yang diterima: `user` atau `admin`.
+     * Accepted `role` values: `user` or `admin`.
      *
-     * Administrator tidak dapat mengubah peran akunnya sendiri, dengan alasan
-     * yang sama seperti pada penonaktifan: menurunkan diri sendiri akan
-     * menghilangkan akses tanpa jalan kembali melalui antarmuka.
+     * Administrators cannot change their own account role for the same reason as
+     * suspension: demoting themselves would remove their access with no way back
+     * through the interface.
      *
-     * Hanya dapat diakses akun berperan `admin`.
+     * Accessible only to accounts with the `admin` role.
      *
      * @response 200 array{message: string, data: array<string, mixed>}
      * @response 401 array{message: string}
