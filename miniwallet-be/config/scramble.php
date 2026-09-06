@@ -1,6 +1,6 @@
 <?php
 
-use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
+
 use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
 
 return [
@@ -214,7 +214,6 @@ MD,
 
     'middleware' => [
         'web',
-        RestrictedDocsAccess::class,
     ],
 
     'extensions' => [],
