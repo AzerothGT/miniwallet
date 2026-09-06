@@ -15,7 +15,7 @@ export default defineRailway(() => {
   const miniwallet = service("miniwallet", {
     source: github("AzerothGT/miniwallet", { checkSuites: false, rootDirectory: "/miniwallet-be" }),
     replicas: { "us-west2": 1 },
-    deploy: { sleepApplication: true },
+    deploy: { sleepApplication: true, startCommand: "php artisan serve --host=0.0.0.0 --port=$PORT" },
     env: { APP_DEBUG: preserve(), APP_ENV: preserve(), APP_KEY: preserve(), APP_URL: preserve(), AUTH_COOKIE_SAME_SITE: preserve(), AUTH_COOKIE_SECURE: preserve(), CACHE_STORE: preserve(), DB_CONNECTION: preserve(), DB_DATABASE: preserve(), DB_HOST: preserve(), DB_PASSWORD: preserve(), DB_PORT: preserve(), DB_USERNAME: preserve(), FILESYSTEM_DISK: preserve(), FRONTEND_URL: preserve(), LOG_CHANNEL: preserve(), LOG_LEVEL: preserve(), LOG_STDERR_FORMATTER: preserve(), MAIL_MAILER: preserve(), QUEUE_CONNECTION: preserve(), SANCTUM_STATEFUL_DOMAINS: preserve(), SESSION_DRIVER: preserve() },
   });
 
